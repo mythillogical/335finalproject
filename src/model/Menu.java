@@ -31,13 +31,11 @@ public class Menu {
                 
                 if (!menuMap.containsKey(category)) {
                 	menuMap.put(category, new ArrayList<>());
+                	catigories.add(category);
                 }
                 
                 Item item = new Item(name, category, cost);
                 menuMap.get(category).add(item);
-                
-                if (!catigories.contains(category))
-                	catigories.add(category);
             }
 
         } catch (IOException e) {
