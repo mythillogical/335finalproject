@@ -16,4 +16,9 @@ public class Modification {
 	public double getAdditionalCost() {
 		return this.additionalCost;
 	}
+	
+	@Override
+    public String toString() {
+		return description + "\t" + Double.toString(additionalCost);
+	}
 }

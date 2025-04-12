@@ -35,4 +35,10 @@ public class Item {
     public void addModification(Modification mod) {
         modifications.add(mod);
     }
+    
+    @Override
+    public String toString() {
+    	return category + "\t" + name + "\t" + Double.toString(getCost());
+    }
+    
 }

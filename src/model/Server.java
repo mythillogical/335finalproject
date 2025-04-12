@@ -22,4 +22,9 @@ public class Server {
 	public double getTotalTips() {
 		return totalTips;
 	}
+	
+	@Override
+    public String toString() {
+    	return serverID + "\t" + name + "\t" + Double.toString(totalTips);
+    }
 }
