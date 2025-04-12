@@ -11,7 +11,8 @@ class MenuITest {
 	@Test
 	void testProccecingFile() {
 		Menu m = new Menu("Menu.csv");
-		m.getMenuMap();
+		System.out.println(m);
+		
 	}
 
 }

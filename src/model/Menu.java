@@ -35,7 +35,9 @@ public class Menu {
                 
                 Item item = new Item(name, category, cost);
                 menuMap.get(category).add(item);
-                catigories.add(category);
+                
+                if (!catigories.contains(category))
+                	catigories.add(category);
             }
 
         } catch (IOException e) {
