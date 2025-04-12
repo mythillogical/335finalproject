@@ -9,9 +9,11 @@ import java.util.Map;
 
 public class Menu {
 	private Map<String, ArrayList<Item>> menuMap;
+	private ArrayList<String> catigories;
 	
 	public Menu(String filePath) {
 		menuMap = new HashMap<>();
+		catigories = new ArrayList<>();
 		readFile(filePath);
 	}
 	
@@ -33,7 +35,7 @@ public class Menu {
                 
                 Item item = new Item(name, category, cost);
                 menuMap.get(category).add(item);
-                
+                catigories.add(category);
             }
 
         } catch (IOException e) {
@@ -45,6 +47,10 @@ public class Menu {
 		return menuMap;
 	}
 	
+	public ArrayList<String> getCatigories() {
+		return catigories;
+	}
+	
 	public ArrayList<Item> getItemsByCategory(String category) {
 		return menuMap.get(category);
 	}
@@ -52,12 +58,10 @@ public class Menu {
 	@Override
 	public String toString() {
 		String str = "";
-		for (Map.Entry<String, ArrayList<Item>> m : menuMap.entrySet()) {
-            String catigory = m.getKey();
-            ArrayList<Item> items = m.getValue();
+		for (String catigory : catigories) {
             
             str += catigory + ":" + "\n";
-            for (Item item : items) {
+            for (Item item : getItemsByCategory(catigory)) {
             	str += item.getName() + " = ";
             	str += Double.toString(item.getCost()) + "\n";
             }
