@@ -49,4 +49,21 @@ public class MenuItem {
 		return menuMap.get(category);
 	}
 	
+	@Override
+	public String toString() {
+		String str = "";
+		for (Map.Entry<String, ArrayList<Item>> m : menuMap.entrySet()) {
+            String catigory = m.getKey();
+            ArrayList<Item> items = m.getValue();
+            
+            str += catigory + ":" + "\n";
+            for (Item item : items) {
+            	str += item.getName() + " = ";
+            	str += Double.toString(item.getCost()) + "\n";
+            }
+            str += "\n";
+        }
+		return str;
+	}
+	
 }
