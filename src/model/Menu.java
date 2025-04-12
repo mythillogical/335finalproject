@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MenuItem {
+public class Menu {
 	private Map<String, ArrayList<Item>> menuMap;
 	
-	public MenuItem(String filePath) {
+	public Menu(String filePath) {
 		menuMap = new HashMap<>();
 		readFile(filePath);
 	}

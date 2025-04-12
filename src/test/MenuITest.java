@@ -1,16 +1,16 @@
 package test;
-import model.MenuItem;
+import model.Menu;
 // import static org.junit.jupiter.api.Assertions.*;
 
 
 import org.junit.jupiter.api.Test;
 
-class MenuItemTest {
+class MenuITest {
 
 	
 	@Test
 	void testProccecingFile() {
-		MenuItem m = new MenuItem("Menu.csv");
+		Menu m = new Menu("Menu.csv");
 		m.getMenuMap();
 	}
 
