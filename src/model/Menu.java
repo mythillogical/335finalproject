@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Menu {
@@ -23,6 +24,7 @@ public class Menu {
             br.readLine(); // to skip the first line
 
             while ((line = br.readLine()) != null) {
+            	
                 String[] values = line.split(",");
 
                 String category = values[0];
@@ -35,6 +37,10 @@ public class Menu {
                 }
                 
                 Item item = new Item(name, category, cost);
+                if (values.length > 3) {
+                	String mod = values[3];
+                	item = addModifications(mod, item);
+                }
                 menuMap.get(category).add(item);
             }
 
@@ -42,6 +48,20 @@ public class Menu {
             e.printStackTrace();
         }
 	}
+	
+	private Item addModifications(String mod, Item item) {
+		if (mod != null && !mod.trim().isEmpty()) {
+            for (String part : mod.split(";")) {
+                String[] pieces = part.split(":");
+                if (pieces.length == 2) {
+                    String modName = pieces[0].trim();
+                    double modCost = Double.parseDouble(pieces[1].trim());
+                    item.addModification(new Modification(modName, modCost));
+                }
+            }
+        }
+		return item;
+    }
 	
 	public Map<String, ArrayList<Item>> getMenuMap() {
 		return menuMap;
@@ -58,12 +78,10 @@ public class Menu {
 	@Override
 	public String toString() {
 		String str = "";
-		for (String catigory : catigories) {
-            
+		for (String catigory : catigories) { 
             str += catigory + ":" + "\n";
             for (Item item : getItemsByCategory(catigory)) {
-            	str += item.getName() + " = ";
-            	str += Double.toString(item.getCost()) + "\n";
+            	str += item.toString() + "\n";
             }
             str += "\n";
         }

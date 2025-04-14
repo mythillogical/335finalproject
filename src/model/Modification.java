@@ -19,6 +19,6 @@ public class Modification {
 	
 	@Override
     public String toString() {
-		return description + "\t" + Double.toString(additionalCost);
+		return "\t- " + description + " = " + Double.toString(additionalCost);
 	}
 }
