@@ -2,23 +2,23 @@ package model;
 
 public class Modification {
 	private String description;
-	private double additionalCost;
+	private double price;
 	
-	public Modification(String description, double additionalCost) {
+	public Modification(String description, double price) {
 		this.description = description;
-		this.additionalCost = additionalCost;
+		this.price = price;
 	}
 	
 	public String getDescription() {
 		return this.description;
 	}
 	
-	public double getAdditionalCost() {
-		return this.additionalCost;
+	public double getPrice() {
+		return this.price;
 	}
 	
 	@Override
     public String toString() {
-		return "\t- " + description + " = " + Double.toString(additionalCost);
+		return "\t- " + description + " = " + Double.toString(price);
 	}
 }

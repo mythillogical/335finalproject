@@ -31,13 +31,21 @@ public class Item {
     public double getTotalCost() {
     	double totalCost = baseCost;
         for (Modification mod : modifications) {
-        	totalCost += mod.getAdditionalCost();
+        	totalCost += mod.getPrice();
         }
         return totalCost;
     }
 
     public void addModification(Modification mod) {
         modifications.add(mod);
+    }
+
+    public static double getItemsCost(ArrayList<Item> items) {
+        double cost = 0;
+        for (Item item : items) {
+            cost += item.getTotalCost();
+        }
+        return cost;
     }
     
     @Override
