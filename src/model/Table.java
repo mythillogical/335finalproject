@@ -3,13 +3,13 @@ package model;
 import java.util.ArrayList;
 
 public class Table {
-	private int tableID;
+	private int tableId;
 	private final int capacity;
 	private int numSeated;
 	private int orders;
 	private Server server;
 	private ArrayList<Item> items;
-	
+
 	public Table(int tableID, int capacity) {
 		this.tableID = tableID;
 		this.capacity = capacity;
@@ -34,18 +34,20 @@ public class Table {
 		orders++;
 	}
 
-	public double close() {
+	public Bill close() {
+		Bill bill = new Bill(items, numSeated, server);
 		numSeated = 0;
 		server = null;
 		items = new ArrayList<>();
-		return getCost(items);
+		return bill;
 	}
 
-	public static double getCost(ArrayList<Item> items) {
-		double cost = 0;
-		for (Item item : items) {
-			cost += item.getCost();
-		}
-		return cost;
+	public TableInfo getTableInfo() {
+		return new TableInfo(tableId, capacity, numSeated);
 	}
+
+	public int getId() {
+		return tableId;
+	}
+
 }
