@@ -11,7 +11,7 @@ public class Table {
 	private ArrayList<Item> items;
 
 	public Table(int tableID, int capacity) {
-		this.tableID = tableID;
+		this.tableId = tableID;
 		this.capacity = capacity;
 		this.items = new ArrayList<>();
 	}
