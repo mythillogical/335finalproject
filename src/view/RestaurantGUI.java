@@ -13,9 +13,10 @@ public class RestaurantGUI extends JFrame {
 	private List<Server> servers;
 	private Menu menu;  // Map<String, ArrayList<Item>> menuMap
 	
-	private JButton OrderManegButton;  // this for order management button
+	private JButton OrderManagButton;  // this for order management button
 	private JButton salesRepoButton;  // this is for sales report button
 	private JButton serverRepoButton;  //this is for server report button
+	private JButton severManagButton;  // this is for server management
 	
 	private JPanel mainPanel;
 	
@@ -33,13 +34,16 @@ public class RestaurantGUI extends JFrame {
 	
 	private void initializeUI() {
 		mainPanel = new JPanel(new BorderLayout());
-		JPanel centerPanel = new JPanel(new GridLayout(3, 1, 10, 10));
+		JPanel centerPanel = new JPanel(new GridLayout(4, 1, 10, 10));
 		centerPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 		
-		OrderManegButton = new JButton("Orders Manage");
+		severManagButton = new JButton("Serevr Managemnt");
+		centerPanel.add(severManagButton);
+		
+		OrderManagButton = new JButton("Orders Managemnt");
 		// add processing for Order Manage under hear
 		
-		centerPanel.add(OrderManegButton);
+		centerPanel.add(OrderManagButton);
 		
 		salesRepoButton = new JButton("Sales Reports");
 		// add processing for Sales Reports under hear

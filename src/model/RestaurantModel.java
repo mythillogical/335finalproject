@@ -2,35 +2,53 @@ package model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 public class RestaurantModel {
     private Menu menu;
-    private ArrayList<Server> servers;
     private Tables tables;
+    private HashMap<String, Server> servers;
+    private ArrayList<Table> assignTables;
 
     public RestaurantModel() {
+    	assignTables = new ArrayList<>();
         tables = new Tables("tables.txt");
         menu = new Menu("menu.csv");
     }
 
     public void addServer(String serverName) {
-        servers.add(new Server(serverName));
+        servers.put(serverName, new Server(serverName));
     }
 
     public boolean removeServer(String serverName) {
-        return servers.removeIf(server -> server.getName().equals(serverName));
+        return servers.remove(serverName) != null;
     }
 
-    public ArrayList<TableInfo> availableTables(int people) {
+    public ArrayList<Table> availableTables(int people) {
         return tables.getAvailable(people);
     }
-
-    public ArrayList<TableInfo> getTables() {
-        return tables.getTablesInfo();
+    
+    public void assignTable(int tableNum, int numPeople, String serverName) {
+    	for (Table table : tables.getTables()) {
+    		if (table.getId() == tableNum) {
+    			
+    		}
+    	}
     }
-
-    public Bill closeTable(int id) {
-        return tables.closeTable(id);
+    
+    
+    public Table closeTable(int tableId, double tip) {
+        return tables.closeTable(tableId);
+    }
+    
+    public ArrayList<Table> getTables() {
+        return tables.getTables();
+    }
+    
+    public ArrayList<Table> getAssignTables() {
+    	return this.assignTables;
+    }
+    
+    public Menu getMenu() {
+    	return this.menu;
     }
 }

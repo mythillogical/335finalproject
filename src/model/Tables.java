@@ -11,56 +11,44 @@ public class Tables {
     private ArrayList<Table> tables;
 
     public Tables(String filePath) {
-        // Add code to read from a tables.txt file with an integer per line indicating the table capacity
         tables = new ArrayList<>();
         readFile(filePath);
     }
     
     private void readFile(String filePath) {
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-        	String line;
-        	int ID = 1;
-            while ((line = br.readLine()) != null) {
-                int capacity = Integer.parseInt(line.trim());
-                tables.add(new Table(ID, capacity));
-                ID += 1;
+    	try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.trim().split("\\s+");
+                if (parts.length == 2) {
+                    int numTab = Integer.parseInt(parts[0]);
+                    int capacity = Integer.parseInt(parts[1]);
+                    tables.add(new Table(numTab, capacity));
+                }
             }
+            
+            Collections.sort(tables, Comparator.comparingInt(table -> table.getId()));
         	
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public ArrayList<TableInfo> getAvailable(int people) {
+    public ArrayList<Table> getAvailable(int people) {
         ArrayList<Table> available = new ArrayList<>();
         for (Table table : tables) {
-            if (table.canSeat(people) >= 0) {
+            if (table.canSeat(people)) {
                 available.add(table);
             }
         }
-
-        Collections.sort(available, Comparator.comparing(table -> table.canSeat(people)));
-        ArrayList<TableInfo> tablesInfo = new ArrayList<>();
-
-        for (Table table : available) {
-            tablesInfo.add(table.getTableInfo());
-        }
-        return tablesInfo;
-    }
-
-    public ArrayList<TableInfo> getTablesInfo() {
-        ArrayList<TableInfo> tablesInfo = new ArrayList<>();
-        for (Table table : tables) {
-            tablesInfo.add(table.getTableInfo());
-        }
-        return tablesInfo;
+        return available;
     }
     
     public ArrayList<Table> getTables() {
     	return tables;
     }
 
-    public Bill closeTable(int id) {
+    public Table closeTable(int id) {
         for (Table table : tables) {
             if (table.getId() == id) {
                 return table.close();
