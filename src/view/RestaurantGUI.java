@@ -16,6 +16,7 @@ public class RestaurantGUI extends JFrame {
 	private JButton OrderManegButton;  // this for order management button
 	private JButton salesRepoButton;  // this is for sales report button
 	private JButton serverRepoButton;  //this is for server report button
+	
 	private JPanel mainPanel;
 	
 	public RestaurantGUI() {

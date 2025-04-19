@@ -3,16 +3,31 @@ package model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
 public class Tables {
     private ArrayList<Table> tables;
 
     public Tables(String filePath) {
         // Add code to read from a tables.txt file with an integer per line indicating the table capacity
-        int[] tableVals = new int[4];
-        int i = 0;
-        for (int table : tableVals) {
-            tables.add(new Table(i++, table));
+        tables = new ArrayList<>();
+        readFile(filePath);
+    }
+    
+    private void readFile(String filePath) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+        	String line;
+        	int ID = 1;
+            while ((line = br.readLine()) != null) {
+                int capacity = Integer.parseInt(line.trim());
+                tables.add(new Table(ID, capacity));
+                ID += 1;
+            }
+        	
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -39,6 +54,10 @@ public class Tables {
             tablesInfo.add(table.getTableInfo());
         }
         return tablesInfo;
+    }
+    
+    public ArrayList<Table> getTables() {
+    	return tables;
     }
 
     public Bill closeTable(int id) {

@@ -18,7 +18,7 @@ public class Menu {
 		readFile(filePath);
 	}
 	
-	public void readFile (String filePath) {
+	private void readFile (String filePath) {
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
             br.readLine(); // to skip the first line
