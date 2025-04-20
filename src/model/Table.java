@@ -3,91 +3,63 @@ package model;
 import java.util.ArrayList;
 
 public class Table {
-	private int tableId;
+	private int tableID;
 	private final int capacity;
 	private int numSeated;
 	// private int orders;
-	private boolean assign;
+	private boolean isOccupied;
 	private Server server;
 	private ArrayList<Item> items;
 
 	public Table(int tableID, int capacity) {
-		this.tableId = tableID;
+		this.tableID = tableID;
 		this.capacity = capacity;
+		this.isOccupied = false;
 		this.items = new ArrayList<>();
-		this.assign = false;
-		this.numSeated = 0;
 	}
 
-	public boolean canSeat(int people) {
-		if (people > capacity || people < 0) return false;
-		return true;
+	public int canSeat(int people) {
+		if (numSeated != 0) return -1;
+		return capacity - people;
 	}
 
-	public void assign(int people, Server server) {
-		this.numSeated += people;
+	/*
+	 * @pre numSeated == 0
+	 */
+	public void seat(int people, Server server) {
+		numSeated += people;
+		this.isOccupied = true;
 		this.server = server;
-		this.assign = true;
 	}
 
 	public void addItems(ArrayList<Item> items) {
 		this.items.addAll(items);
-		// this.orders++;
+		// orders++;
+	}
+
+	public Bill close() {
+		Bill bill = new Bill(items, numSeated, server);
+		reset();
+		return bill;
 	}
 	
-	public void addItem(Item item) {
-		this.items.add(item);
-	}
-
-	public Table close() {
-	    Table closedTable = new Table(tableId, this.capacity);
-	    closedTable.assign(this.numSeated, this.server);
-	    closedTable.addItems(new ArrayList<>(this.items));
-	    reset();
-	    return closedTable;
-	}
-
 	private void reset() {
-	    this.numSeated = 0;
-	    this.server = null;
-	    this.assign = false;
-	    this.items.clear();
+		numSeated = 0;
+		server = null;
+		this.isOccupied = false;
+		items = new ArrayList<>();
 	}
-	
-	public double getTotalCost() {
-        int totalCost = 0;
-        for (Item item : items) {
-        	totalCost += item.getTotalCost();
-        }
-        return totalCost;
-    }
-	
-	public double getCostSplitEvenly() {
-        return getTotalCost() / numSeated;
-    }
 
-	//public TableInfo getTableInfo() {
-	//	return new TableInfo(tableId, capacity, numSeated);
-	//}
-	
-	//public int getNumOrders() {
-	//	return this.orders;
-	//}
+	public TableInfo getTableInfo() {
+		return new TableInfo(tableID, capacity, numSeated);
+	}
 
 	public int getId() {
-		return this.tableId;
+		return tableID;
 	}
 	
-	public Server getServer() {
-		return this.server;
-	}
-	
-	public boolean getAssign() {
-		return this.assign;
-	}
-	
-	public String toString() {
-		return "(" + Integer.toString(tableId) + ", " + Integer.toString(capacity) + ")";
+	public boolean getIsOccupied() {
+		return this.isOccupied;
 	}
 
 }

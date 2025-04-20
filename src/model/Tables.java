@@ -34,21 +34,32 @@ public class Tables {
         }
     }
 
-    public ArrayList<Table> getAvailable(int people) {
+    public ArrayList<TableInfo> getAvailable(int people) {
         ArrayList<Table> available = new ArrayList<>();
         for (Table table : tables) {
-            if (table.canSeat(people)) {
+            if (table.canSeat(people) >= 0) {
                 available.add(table);
             }
         }
-        return available;
-    }
-    
-    public ArrayList<Table> getTables() {
-    	return tables;
+
+        // Collections.sort(available, Comparator.comparing(table -> table.canSeat(people)));
+        ArrayList<TableInfo> tablesInfo = new ArrayList<>();
+
+        for (Table table : available) {
+            tablesInfo.add(table.getTableInfo());
+        }
+        return tablesInfo;
     }
 
-    public Table closeTable(int id) {
+    public ArrayList<TableInfo> getTablesInfo() {
+        ArrayList<TableInfo> tablesInfo = new ArrayList<>();
+        for (Table table : tables) {
+            tablesInfo.add(table.getTableInfo());
+        }
+        return tablesInfo;
+    }
+
+    public Bill closeTable(int id) {
         for (Table table : tables) {
             if (table.getId() == id) {
                 return table.close();
@@ -56,4 +67,15 @@ public class Tables {
         }
         return null;
     }
+    
+    public ArrayList<Table> getOccuipiiedTables() {
+    	ArrayList<Table> tables = new ArrayList<>();
+    	for (Table table : this.tables) {
+            if (table.getIsOccupied()) {
+                tables.add(table);
+            }
+        }
+    	return tables;
+    }
+    
 }
