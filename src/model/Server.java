@@ -23,6 +23,10 @@ public class Server {
 	public double getTotalTips() {
 		return totalTips;
 	}
+	
+	public void setName(String name) {
+		this.name = name;
+	}
 
 	//public ArrayList<Table> getTables() { return new ArrayList<>(tables); }
 

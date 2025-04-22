@@ -36,6 +36,14 @@ public class Table {
 		this.items.addAll(items);
 		// orders++;
 	}
+	
+	public void addItem(Item item) {
+		items.add(item);
+	}
+	
+	public boolean removeItem(String itemName) {
+		return items.removeIf(item -> item.getName().equals(itemName));
+	}
 
 	public Bill close() {
 		Bill bill = new Bill(items, numSeated, server);
@@ -53,13 +61,13 @@ public class Table {
 	public TableInfo getTableInfo() {
 		return new TableInfo(tableID, capacity, numSeated);
 	}
-
-	public int getId() {
-		return tableID;
-	}
 	
 	public boolean getIsOccupied() {
 		return this.isOccupied;
+	}
+	
+	public int getTableId() {
+		return this.tableID;
 	}
 
 }

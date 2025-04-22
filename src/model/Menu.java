@@ -5,16 +5,17 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Menu {
 	private Map<String, ArrayList<Item>> menuMap;
 	private ArrayList<String> catigories;
+	private ArrayList<Item> allItems; // to store all the items
 	
 	public Menu(String filePath) {
 		menuMap = new HashMap<>();
 		catigories = new ArrayList<>();
+		allItems = new ArrayList<>();
 		readFile(filePath);
 	}
 	
@@ -26,22 +27,25 @@ public class Menu {
             while ((line = br.readLine()) != null) {
             	
                 String[] values = line.split(",");
-
-                String category = values[0];
-                String name = values[1];
-                double cost = Double.parseDouble(values[2]);
-                
-                if (!menuMap.containsKey(category)) {
-                	menuMap.put(category, new ArrayList<>());
-                	catigories.add(category);
+                if (values.length >= 3) {
+                	String category = values[0];
+	                String name = values[1];
+	                double cost = Double.parseDouble(values[2]);
+	                
+	                if (!menuMap.containsKey(category)) {
+	                	menuMap.put(category, new ArrayList<>());
+	                	catigories.add(category);
+	                }
+	                
+	                Item item = new Item(name, category, cost);
+	                if (values.length > 3) {
+	                	String mod = values[3];
+	                	item = addModifications(mod, item);
+	                }
+	                
+	                menuMap.get(category).add(item);
+	                allItems.add(item);
                 }
-                
-                Item item = new Item(name, category, cost);
-                if (values.length > 3) {
-                	String mod = values[3];
-                	item = addModifications(mod, item);
-                }
-                menuMap.get(category).add(item);
             }
 
         } catch (IOException e) {
@@ -73,6 +77,10 @@ public class Menu {
 	
 	public ArrayList<Item> getItemsByCategory(String category) {
 		return menuMap.get(category);
+	}
+	
+	public ArrayList<Item> getAllItems() {
+		return allItems;
 	}
 	
 	@Override
