@@ -59,13 +59,21 @@ public class Tables {
         return tablesInfo;
     }
 
-    public Bill closeTable(int numTable) {
+    public void closeTable(int numTable) {
         for (Table table : tables) {
             if (table.getTableId() == numTable) {
-                return table.close();
+                table.close();
             }
         }
-        return null;
+    }
+    
+    public Bill getBillTable(int numTable){
+    	for (Table table : tables) {
+            if (table.getTableId() == numTable) {
+            	return table.getBill();
+            }
+    	}
+    	return null;
     }
     
     public ArrayList<Table> getOccuipiedTables() {

@@ -45,18 +45,17 @@ public class Table {
 		return items.removeIf(item -> item.getName().equals(itemName));
 	}
 
-	public Bill close() {
-		Bill bill = new Bill(items, numSeated, server);
-		reset();
-		return bill;
-	}
-	
-	private void reset() {
+	public void close() {
 		numSeated = 0;
 		server = null;
 		this.isOccupied = false;
 		items = new ArrayList<>();
 	}
+	
+	public Bill getBill() {
+		return new Bill(items, numSeated, server);
+	}
+	
 
 	public TableInfo getTableInfo() {
 		return new TableInfo(tableID, capacity, numSeated);

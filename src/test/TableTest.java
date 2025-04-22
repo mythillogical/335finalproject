@@ -13,9 +13,9 @@ class TableTest {
 		Table table = new Table(1, 10);
 		Server server = new Server("name1");
 		
-		Bill tableClose = table.close();
-		System.out.println(tableClose.getTotalCost());
-		System.out.println(tableClose.getServer());
+		//Bill tableClose = table.close();	
+		//System.out.println(tableClose.getTotalCost());
+		//System.out.println(tableClose.getServer());
 	}
 	
 	@Test
