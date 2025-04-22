@@ -10,7 +10,7 @@ public class RestaurantModel {
 
 	public RestaurantModel() {
 		this.tables = new Tables("tables.txt");
-		this.menu = new Menu("menu.csv");
+		this.menu = new Menu("Menu.csv");
 		this.closedTables = new ArrayList<>();
 		this.servers = new ArrayList<>();
 	}
@@ -42,6 +42,14 @@ public class RestaurantModel {
 			this.closedTables.add(bill);
 		}
 		return bill;
+	}
+	
+	public void addTipToServer(String serverName, double tip) {
+		for (Server server : servers) {
+			if (server.getName().equals(serverName)) {
+				server.addTips(tip);
+			}
+		}
 	}
 	
 	public Menu getMenu() {
