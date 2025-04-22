@@ -27,7 +27,7 @@ public class Tables {
                 }
             }
             
-            Collections.sort(tables, Comparator.comparingInt(table -> table.getId()));
+            Collections.sort(tables, Comparator.comparingInt(table -> table.getTableId()));
         	
         } catch (IOException e) {
             e.printStackTrace();
@@ -59,16 +59,16 @@ public class Tables {
         return tablesInfo;
     }
 
-    public Bill closeTable(int id) {
+    public Bill closeTable(int numTable) {
         for (Table table : tables) {
-            if (table.getId() == id) {
+            if (table.getTableId() == numTable) {
                 return table.close();
             }
         }
         return null;
     }
     
-    public ArrayList<Table> getOccuipiiedTables() {
+    public ArrayList<Table> getOccuipiedTables() {
     	ArrayList<Table> tables = new ArrayList<>();
     	for (Table table : this.tables) {
             if (table.getIsOccupied()) {
@@ -76,6 +76,42 @@ public class Tables {
             }
         }
     	return tables;
+    }
+    
+    public Table getTable(int numTable) {
+    	for (Table table : tables) {
+    		if (table.getTableId() == numTable) {
+    			return table;
+    		}
+    	}
+    	return null;
+    }
+    
+    public boolean assignTable(int numTable, int numPeople, Server server) {
+    	for (Table table : tables) {
+    		if (table.getTableId() == numTable) {
+    			table.seat(numPeople, server);
+    			return true;
+    		}
+    	}
+    	return false;
+    }
+    
+    public void addItemsOrderToTable(int numTable, ArrayList<Item> items) {
+    	for (Table table : tables) {
+    		if (table.getTableId() == numTable) {
+    			table.addItems(items);
+    		}
+    	}
+    }
+    
+    public boolean removeItemFromTable(int numTable, Item item) {
+    	for (Table table : tables) {
+    		if (table.getTableId() == numTable) {
+    			return table.removeItem(item.getName());
+    		}
+    	}
+    	return true;
     }
     
 }
