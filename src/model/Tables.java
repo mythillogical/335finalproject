@@ -6,13 +6,15 @@ import java.io.IOException;
 import java.util.*;
 
 public class Tables {
-
+    // list of all tables
     private final List<Table> tables = new ArrayList<>();
 
-    public Tables(String filePath) { readFile(filePath); }
+    // load table definitions from file
+    public Tables(String filePath) {
+        readFile(filePath);
+    }
 
-    /* -------------------------------------------------------------- */
-
+    // read each line of the file and create table objects
     private void readFile(String path) {
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             String ln;
@@ -25,67 +27,83 @@ public class Tables {
                 }
             }
             tables.sort(Comparator.comparingInt(Table::getTableID));
-        } catch (IOException ex) { ex.printStackTrace(); }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
-    /* -------------------------------------------------------------- */
-
-    /** Assigns *and* seats a server + guests if possible. */
+    // try to seat a party at a table under a server
     public boolean assignTable(int id, int guests, Server s) {
         Table t = getTable(id);
-        if (t == null)         return false;
-        if (t.canSeat(guests) < 0) return false;   // already taken
-        if (t.canSeat(guests) < 0) return false;   // over capacity
+        if (t == null) return false;
+        int space = t.canSeat(guests);
+        if (space < 0) return false;
         t.seat(guests, s);
         return true;
     }
 
+    // add items to a table's current order
     public void addItemsOrderToTable(int id, List<Item> order) {
         Table t = getTable(id);
-        if (t != null && t.isOccupied()) t.addItems(order);
+        if (t != null && t.isOccupied()) {
+            t.addItems(order);
+        }
     }
 
+    // remove a specific item from a table
     public boolean removeItemFromTable(int id, Item i) {
         Table t = getTable(id);
         return t != null && t.removeItem(i);
     }
 
+    // clear a table and free it up
     public void closeTable(int id) {
         Table t = getTable(id);
-        if (t != null) t.close();
+        if (t != null) {
+            t.close();
+        }
     }
 
-    /* -------------------------------------------------------------- */
+    // find a table by its id
+    public Table getTable(int id) {
+        for (Table t : tables) {
+            if (t.getTableID() == id) return t;
+        }
+        return null;
+    }
 
-    public Table           getTable(int id)         { return tables.stream()
-            .filter(t -> t.getTableID()==id)
-            .findFirst().orElse(null); }
-
-    public List<TableInfo> getTablesInfo()          {
+    // get basic info for all tables
+    public List<TableInfo> getTablesInfo() {
         List<TableInfo> out = new ArrayList<>();
-        tables.forEach(t -> out.add(new TableInfo(t.getTableID(),
-                t.getCapacity(),
-                t.getNumSeated())));
+        for (Table t : tables) {
+            out.add(new TableInfo(t.getTableID(), t.getCapacity(), t.getNumSeated()));
+        }
         return out;
     }
 
-    public List<TableInfo> getAvailable(int guests){
+    // get info for tables that can seat the given party
+    public List<TableInfo> getAvailable(int guests) {
         List<TableInfo> out = new ArrayList<>();
-        tables.stream().filter(t -> t.canSeat(guests) >= 0)
-                .forEach(t -> out.add(new TableInfo(t.getTableID(),
-                        t.getCapacity(),
-                        t.getNumSeated())));
+        for (Table t : tables) {
+            if (t.canSeat(guests) >= 0) {
+                out.add(new TableInfo(t.getTableID(), t.getCapacity(), t.getNumSeated()));
+            }
+        }
         return out;
     }
 
+    // list all currently occupied tables
     public List<Table> getOccupiedTables() {
         List<Table> out = new ArrayList<>();
-        tables.stream().filter(Table::isOccupied).forEach(out::add);
+        for (Table t : tables) {
+            if (t.isOccupied()) out.add(t);
+        }
         return out;
     }
 
+    // get the bill snapshot for a table
     public Bill getBillTable(int id) {
         Table t = getTable(id);
-        return t == null ? null : t.getBill();
+        return (t != null) ? t.getBill() : null;
     }
 }

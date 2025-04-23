@@ -6,23 +6,30 @@ import java.util.ArrayList;
 public class RestaurantController {
 
     private final RestaurantModel model;
-    private final RestaurantView  view;
+    private final RestaurantView view;
 
     public RestaurantController(RestaurantModel m, RestaurantView v) {
-        model = m; view = v;
+        // Set the model and view for this controller
+        model = m;
+        view = v;
     }
 
-    /* ------------------------ server ------------------------ */
+    // server operations: add or remove a server
+    public void handleAddServer(String name) {
+        model.addServer(name);
+    }
+    public boolean handleRemoveServer(String name) {
+        return model.removeServer(name);
+    }
 
-    public void handleAddServer(String name)          { model.addServer(name); }
-    public boolean handleRemoveServer(String name)    { return model.removeServer(name); }
-
-    /* ------------------------ seating ----------------------- */
-
+    // seating operations: assign or close a table
     public boolean handleAssignTable(int id, int guests, String server) {
         boolean ok = model.assignTableToServer(id, guests, server);
-        if (!ok)   view.displayError("Could not assign table (check capacity / availability)");
-        else       view.displayTables(model.getTables().getTablesInfo());
+        if (!ok) {
+            view.displayError("Could not assign table (check capacity / availability)");
+        } else {
+            view.displayTables(model.getTables().getTablesInfo());
+        }
         return ok;
     }
 
@@ -31,12 +38,13 @@ public class RestaurantController {
         view.displayTables(model.getTables().getTablesInfo());
     }
 
-    /* ------------------------ orders ------------------------ */
-
+    // order operations: add items to a table order
     public void handleAddOrder(int id, ArrayList<Item> items) {
         model.addOrderToTable(id, items);
     }
 
-    /* -------------------------------------------------------- */
-    public RestaurantModel getModel() { return model; }
+    // expose the model for view access or testing
+    public RestaurantModel getModel() {
+        return model;
+    }
 }

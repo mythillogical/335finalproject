@@ -5,29 +5,41 @@ import java.util.HashMap;
 
 public class RestaurantModel {
 
-	private final Menu                    menu   = new Menu("Menu.csv");
-	private final Tables                  tables = new Tables("tables.txt");
+	// holds menu items
+	private final Menu menu = new Menu("Menu.csv");
+	// tracks all tables
+	private final Tables tables = new Tables("tables.txt");
+	// active servers mapped by name
 	private final HashMap<String, Server> servers = new HashMap<>();
-	private final ArrayList<Bill>         closedTables = new ArrayList<>();
+	// list of closed bills with tips
+	private final ArrayList<Bill> closedTables = new ArrayList<>();
 
-	/* -------------------------------------------------------------- */
-	public void addServer(String name)          { servers.put(name, new Server(name)); }
-	public boolean removeServer(String name)    { return servers.remove(name) != null; }
+	// add a new server
+	public void addServer(String name) {
+		servers.put(name, new Server(name));
+	}
 
+	// remove an existing server by name
+	public boolean removeServer(String name) {
+		return servers.remove(name) != null;
+	}
+
+	// seat guests at a table with a server, return false if fail
 	public boolean assignTableToServer(int id, int guests, String server) {
 		return tables.assignTable(id, guests, servers.get(server));
 	}
 
+	// add order items to a table
 	public void addOrderToTable(int id, ArrayList<Item> order) {
 		tables.addItemsOrderToTable(id, order);
 	}
 
+	// close a table, record bill and add tip to server
 	public void closeTable(int id, double tip) {
-		Bill b = tables.getBillTable(id);     // snapshot before clearing
+		Bill b = tables.getBillTable(id); // capture items and server
 		tables.closeTable(id);
-
 		if (b != null) {
-			/* re-wrap to include the gratuity */
+			// create new bill including tip
 			Bill withTip = new Bill(
 					new ArrayList<>(b.getItems()),
 					b.getPeople(),
@@ -39,9 +51,20 @@ public class RestaurantModel {
 		}
 	}
 
-	/* -------------------------------------------------------------- */
-	public Menu                    getMenu()         { return menu; }
-	public Tables                  getTables()       { return tables; }
-	public HashMap<String,Server>  getServers()      { return servers; }
-	public ArrayList<Bill>         getClosedTables() { return closedTables; }
+	// getters for model data
+	public Menu getMenu() {
+		return menu;
+	}
+
+	public Tables getTables() {
+		return tables;
+	}
+
+	public HashMap<String, Server> getServers() {
+		return servers;
+	}
+
+	public ArrayList<Bill> getClosedTables() {
+		return closedTables;
+	}
 }

@@ -8,17 +8,11 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Order-entry screen: seat / close tables and add menu items.  Provides
- * feedback pop-ups and a colour-coded table selector (green = free,
- * red = occupied).
- */
 public class OrderManagementPanel extends JPanel {
-
-    /* MVC hook */
+    // reference to controller for mvc
     private final RestaurantController controller;
 
-    /* ─────────── widgets ─────────── */
+    // widgets for table seating and orders
     private final JComboBox<Integer> tableBox  = new JComboBox<>();
     private final JTextField         guestsTxt = new JTextField(4);
     private final JComboBox<String>  serverBox = new JComboBox<>();
@@ -26,9 +20,8 @@ public class OrderManagementPanel extends JPanel {
 
     private final JComboBox<String>  menuBox   = new JComboBox<>();
     private final DefaultTableModel  orderTm   =
-            new DefaultTableModel(new String[]{"Item", "Cost"}, 0);
+            new DefaultTableModel(new String[]{"item", "cost"}, 0);
 
-    /* ================================================================= */
     public OrderManagementPanel(RestaurantController controller) {
         this.controller = controller;
         buildUI();
@@ -37,58 +30,47 @@ public class OrderManagementPanel extends JPanel {
         refreshOrder();
     }
 
-    /* =================================================================
-       UI BUILD
-       ================================================================= */
+    // set up layout and add components
     private void buildUI() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        /* ─── top control bar ─────────────────────────────────────── */
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-
-        top.add(new JLabel("Table:"));
+        top.add(new JLabel("table:"));
         tableBox.setRenderer(new TableComboRenderer());
         tableBox.addActionListener(e -> refreshOrder());
         top.add(tableBox);
 
-        top.add(new JLabel("Guests:"));
+        top.add(new JLabel("guests:"));
         top.add(guestsTxt);
 
-        top.add(new JLabel("Server:"));
+        top.add(new JLabel("server:"));
         top.add(serverBox);
 
-        JButton seatBtn = new JButton("Seat Table");
+        JButton seatBtn = new JButton("seat table");
         seatBtn.addActionListener(e -> seatTable());
         top.add(seatBtn);
 
-        top.add(new JLabel("Tip:"));
+        top.add(new JLabel("tip:"));
         top.add(tipTxt);
 
-        JButton closeBtn = new JButton("Close Table");
+        JButton closeBtn = new JButton("close table");
         closeBtn.addActionListener(e -> closeTable());
         top.add(closeBtn);
 
         add(top, BorderLayout.NORTH);
-
-        /* ─── current order list ─────────────────────────────────── */
         add(new JScrollPane(new JTable(orderTm)), BorderLayout.CENTER);
 
-        /* ─── bottom add-item bar ────────────────────────────────── */
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        bottom.add(new JLabel("Menu item:"));
+        bottom.add(new JLabel("menu item:"));
         bottom.add(menuBox);
-        JButton addBtn = new JButton("Add to Order");
+        JButton addBtn = new JButton("add to order");
         addBtn.addActionListener(e -> addItem());
         bottom.add(addBtn);
         add(bottom, BorderLayout.SOUTH);
     }
 
-    /* =================================================================
-       REFRESH HELPERS
-       ================================================================= */
-
-    /** fills table selector and menu list; called once on construction */
+    // load table ids and menu items into combos
     private void refreshTableList() {
         tableBox.removeAllItems();
         controller.getModel().getTables().getTablesInfo()
@@ -101,7 +83,7 @@ public class OrderManagementPanel extends JPanel {
         }
     }
 
-    /** reload servers combo – called from RestaurantGUI when servers change */
+    // reload server names
     void refreshServers() {
         serverBox.removeAllItems();
         controller.getModel().getServers().values()
@@ -109,7 +91,7 @@ public class OrderManagementPanel extends JPanel {
         if (serverBox.getItemCount() > 0) serverBox.setSelectedIndex(0);
     }
 
-    /** rebuilds the visible order table for the currently selected table */
+    // show current orders for selected table
     private void refreshOrder() {
         orderTm.setRowCount(0);
         Integer sel = (Integer) tableBox.getSelectedItem();
@@ -126,88 +108,76 @@ public class OrderManagementPanel extends JPanel {
         }
     }
 
-    /* =================================================================
-       ACTIONS
-       ================================================================= */
+    // attempt to seat table with given guests and server
     private void seatTable() {
         String guestsStr = guestsTxt.getText().trim();
         String server    = (String) serverBox.getSelectedItem();
-
         if (guestsStr.isEmpty() || server == null) {
-            warn("Missing data");
+            warn("missing data");
             return;
         }
-
         try {
             int guests  = Integer.parseInt(guestsStr);
             int tableId = (Integer) tableBox.getSelectedItem();
-
             if (controller.handleAssignTable(tableId, guests, server)) {
-                info("Table "+tableId+" successfully seated");
+                info("table " + tableId + " seated");
                 refreshOrder();
-                tableBox.repaint();          // update colours
+                tableBox.repaint();
             }
         } catch (NumberFormatException ex) {
-            error("Guests must be a whole number");
+            error("guests must be a number");
         }
     }
 
+    // close the table and record tip
     private void closeTable() {
         try {
             double tip  = Double.parseDouble(tipTxt.getText().trim());
             int tableId = (Integer) tableBox.getSelectedItem();
-
             controller.handleCloseTable(tableId, tip);
-            info("Table "+tableId+" closed");
+            info("table " + tableId + " closed");
             refreshOrder();
-            tableBox.repaint();              // update colours
+            tableBox.repaint();
         } catch (NumberFormatException ex) {
-            error("Tip must be a number");
+            error("tip must be a number");
         }
     }
 
+    // add selected menu item to current table
     private void addItem() {
-        int    tableId  = (Integer) tableBox.getSelectedItem();
-        Table  t        = controller.getModel().getTables().getTable(tableId);
-
+        int   tableId = (Integer) tableBox.getSelectedItem();
+        Table t       = controller.getModel().getTables().getTable(tableId);
         if (t == null || !t.isOccupied()) {
-            warn("Seat the table before adding an order");
+            warn("seat table first");
             return;
         }
-
-        String itemName = (String) menuBox.getSelectedItem();
-        Item chosen = controller.getModel().getMenu().getAllItems().stream()
-                .filter(i -> i.getName().equals(itemName))
+        String name = (String) menuBox.getSelectedItem();
+        Item   it   = controller.getModel().getMenu()
+                .getAllItems().stream()
+                .filter(i -> i.getName().equals(name))
                 .findFirst().orElse(null);
-
-        if (chosen == null) return;
-
-        controller.handleAddOrder(tableId, new ArrayList<>(List.of(chosen)));
+        if (it == null) return;
+        controller.handleAddOrder(tableId, new ArrayList<>(List.of(it)));
         refreshOrder();
     }
 
-    /* =================================================================
-       FEEDBACK UTILITIES
-       ================================================================= */
-    private void warn (String msg){ JOptionPane.showMessageDialog(this,msg,"Warning",JOptionPane.WARNING_MESSAGE); }
-    private void info (String msg){ JOptionPane.showMessageDialog(this,msg,"Info",   JOptionPane.INFORMATION_MESSAGE); }
-    private void error(String msg){ JOptionPane.showMessageDialog(this,msg,"Error",  JOptionPane.ERROR_MESSAGE); }
+    // simple message dialogs
+    private void warn (String m){ JOptionPane.showMessageDialog(this, m, "warning", JOptionPane.WARNING_MESSAGE); }
+    private void info (String m){ JOptionPane.showMessageDialog(this, m, "info",    JOptionPane.INFORMATION_MESSAGE); }
+    private void error(String m){ JOptionPane.showMessageDialog(this, m, "error",   JOptionPane.ERROR_MESSAGE); }
 
-    /* =================================================================
-       COLOURED COMBO-BOX RENDERER
-       ================================================================= */
+    // renderer to colour table ids by occupancy
     private class TableComboRenderer extends DefaultListCellRenderer {
-        @Override public Component getListCellRendererComponent(JList<?> list,
-                                                                Object value,int idx,boolean sel,boolean focus) {
-            JLabel l = (JLabel) super.getListCellRendererComponent(
-                    list,value,idx,sel,focus);
-
+        @Override
+        public Component getListCellRendererComponent(JList<?> list,
+                                                      Object value, int idx, boolean sel, boolean focus) {
+            JLabel l = (JLabel) super.getListCellRendererComponent(list, value, idx, sel, focus);
             if (value instanceof Integer id) {
                 Table t = controller.getModel().getTables().getTable(id);
                 if (t != null && t.isOccupied()) {
-                    l.setForeground(new Color(170, 30, 30));   // red
+                    l.setForeground(new Color(170, 30, 30));
                 } else {
-                    l.setForeground(new Color(0, 128, 0));     // green
+                    l.setForeground(new Color(0, 128, 0));
                 }
             }
             return l;

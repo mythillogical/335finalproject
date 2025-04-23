@@ -1,8 +1,9 @@
 package view;
 
-/** Thin launcher wrapper so you can run “Main” in IntelliJ. */
+// launcher class to start the restaurant gui
 public class Main {
 	public static void main(String[] args) {
+		// delegate to RestaurantGUI
 		RestaurantGUI.main(args);
 	}
 }

@@ -6,13 +6,19 @@ import model.Server;
 import javax.swing.*;
 import java.awt.*;
 
-/** Simple CRUD for servers – no “back” button any more. */
+/**
+ * simple crud for servers without a back button
+ */
 public class ServerManagementPanel extends JPanel {
 
+    // controller to handle server actions
     private final RestaurantController controller;
+    // backing model for the server list
     private final DefaultListModel<Server> listModel = new DefaultListModel<>();
-    private final JList<Server> serverList           = new JList<>(listModel);
-    private final JTextField nameField               = new JTextField(18);
+    // ui list showing servers
+    private final JList<Server> serverList = new JList<>(listModel);
+    // input field for new server names
+    private final JTextField nameField = new JTextField(18);
 
     public ServerManagementPanel(RestaurantController c) {
         controller = c;
@@ -20,11 +26,10 @@ public class ServerManagementPanel extends JPanel {
         refresh();
     }
 
-    /* ------------------------------------------------------------ */
-
+    // set up layout and widgets
     private void buildUI() {
-        setLayout(new BorderLayout(10,10));
-        setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        setLayout(new BorderLayout(10, 10));
+        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JLabel title = new JLabel("Server Management", SwingConstants.CENTER);
         title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
@@ -49,6 +54,7 @@ public class ServerManagementPanel extends JPanel {
         add(edit, BorderLayout.SOUTH);
     }
 
+    // reload list from model
     public void refresh() {
         listModel.clear();
         controller.getModel().getServers().values().forEach(listModel::addElement);

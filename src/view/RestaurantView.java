@@ -8,8 +8,7 @@ import java.awt.*;
 import java.util.List;
 
 /**
- * Swing-based view helper; every public method builds a component and
- * swaps it into a single centre panel owned by the host frame.
+ * view helper swaps content in main frame panel.
  */
 public class RestaurantView {
 
@@ -22,13 +21,12 @@ public class RestaurantView {
         frame.getContentPane().add(swapPanel, BorderLayout.CENTER);
     }
 
-    /* Allow RestaurantGUI to reuse the panel when showing the overview. */
-    public JPanel getRootPanel() { return swapPanel; }
+    // expose root panel for tables overview
+    public JPanel getRootPanel() {
+        return swapPanel;
+    }
 
-    /* ------------------------------------------------------------------
-       TABLE OVERVIEW
-       ------------------------------------------------------------------ */
-
+    // show table overview in swap panel
     public void displayTables(List<TableInfo> tableInfos) {
         String[] cols = {"Table", "Capacity", "Seated", "Occupied"};
         DefaultTableModel tm = new DefaultTableModel(cols, 0);
@@ -37,15 +35,13 @@ public class RestaurantView {
                     ti.getId(),
                     ti.getCapacity(),
                     ti.getSeated(),
-                    ti.getSeated() == 0 ? "No" : "Yes"});
+                    ti.getSeated() == 0 ? "No" : "Yes"
+            });
         }
-        refreshWith(new JScrollPane(new JTable(tm)), "Current Tables");
+        refreshWith(new JScrollPane(new JTable(tm)), "current tables");
     }
 
-    /* ------------------------------------------------------------------
-       MENU LISTING
-       ------------------------------------------------------------------ */
-
+    // show full menu listing
     public void displayMenu(List<Item> menu) {
         String[] cols = {"Name", "Category", "Base", "Total (mods)"};
         DefaultTableModel tm = new DefaultTableModel(cols, 0);
@@ -54,41 +50,33 @@ public class RestaurantView {
                     i.getName(),
                     i.getCategory(),
                     String.format("$%.2f", i.getCost()),
-                    String.format("$%.2f", i.getTotalCost())});
+                    String.format("$%.2f", i.getTotalCost())
+            });
         }
-        refreshWith(new JScrollPane(new JTable(tm)), "Menu");
+        refreshWith(new JScrollPane(new JTable(tm)), "menu");
     }
 
-    /* ------------------------------------------------------------------
-       BILL RENDERING
-       ------------------------------------------------------------------ */
-
+    // show bill details for a table
     public void displayBill(int tableNumber, Bill bill) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Bill for table ").append(tableNumber).append("\n\n")
-                .append("Total: $").append(String.format("%.2f", bill.getTotalCost())).append("\n")
-                .append("Split evenly: $").append(String.format("%.2f", bill.getCostSplitEvenly())).append("\n\n");
+        sb.append("bill for table ").append(tableNumber).append("\n\n")
+                .append("total: $").append(String.format("%.2f", bill.getTotalCost())).append("\n")
+                .append("split evenly: $").append(String.format("%.2f", bill.getCostSplitEvenly())).append("\n\n");
         if (bill.getServer() != null) {
-            sb.append("Server: ").append(bill.getServer().getName()).append("\n");
+            sb.append("server: ").append(bill.getServer().getName()).append("\n");
         }
         JTextArea ta = new JTextArea(sb.toString());
         ta.setEditable(false);
         ta.setFont(new Font("Monospaced", Font.PLAIN, 14));
-        refreshWith(new JScrollPane(ta), "Bill");
+        refreshWith(new JScrollPane(ta), "bill");
     }
 
-    /* ------------------------------------------------------------------
-       ERROR POP-UP
-       ------------------------------------------------------------------ */
-
+    // show error dialog
     public void displayError(String message) {
-        JOptionPane.showMessageDialog(frame, message, "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(frame, message, "error", JOptionPane.ERROR_MESSAGE);
     }
 
-    /* ------------------------------------------------------------------
-       PRIVATE HELPERS
-       ------------------------------------------------------------------ */
-
+    // helper to replace center panel content
     private void refreshWith(JComponent c, String title) {
         swapPanel.removeAll();
         swapPanel.add(c, BorderLayout.CENTER);

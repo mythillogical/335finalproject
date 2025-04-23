@@ -4,31 +4,56 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-/** A waiter / waitress currently working in the restaurant. */
+// stores server name, tips, and assigned tables
 public class Server {
 
-	private final String  name;
-	private       double  tips = 0.0;
+	private final String name;
+	private double tips = 0.0;
 	private final Set<Table> tables = new HashSet<>();
 
-	/* -------------------------------------------------------------- */
+	// ctor: init server with name
+	public Server(String name) {
+		this.name = name;
+	}
 
-	public Server(String name) { this.name = name; }
+	// add a table assignment
+	void addTable(Table t) {
+		tables.add(t);
+	}
 
-	/* bookkeeping (package-private – only Table should call these) */
-	void addTable(Table t)    { tables.add(t); }
-	void removeTable(Table t) { tables.remove(t); }
+	// remove a table assignment
+	void removeTable(Table t) {
+		tables.remove(t);
+	}
 
-	/* -------------------------------------------------------------- */
+	// get server name
+	public String getName() {
+		return name;
+	}
 
-	public String  getName()          { return name; }
-	public double  getTotalTips()     { return tips; }
-	public int     getNumTables()     { return tables.size(); }
-	public Set<Table> getTables()     { return Collections.unmodifiableSet(tables); }
+	// get total tips amount
+	public double getTotalTips() {
+		return tips;
+	}
 
-	public void addTips(double amount){ tips += amount; }
+	// get count of tables served
+	public int getNumTables() {
+		return tables.size();
+	}
 
-	@Override public String toString() {
+	// get set of assigned tables (read-only)
+	public Set<Table> getTables() {
+		return Collections.unmodifiableSet(tables);
+	}
+
+	// add tip amount
+	public void addTips(double amount) {
+		tips += amount;
+	}
+
+	// format server info for display
+	@Override
+	public String toString() {
 		return String.format("%s · %d tbl · $%.2f", name, getNumTables(), tips);
 	}
 }

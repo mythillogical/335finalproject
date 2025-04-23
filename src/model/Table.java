@@ -3,64 +3,59 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 
-/** One physical table in the dining room. */
+/* one real-world table */
 public class Table {
 
-	private final int   tableID;
-	private final int   capacity;
+	private final int  id;          // number printed on the table
+	private final int  cap;         // max seats
 
-	private int         numSeated = 0;
-	private boolean     occupied  = false;
-	private Server      server    = null;
-	private final List<Item> items = new ArrayList<>();
+	private int     seated = 0;     // current party size
+	private boolean occ    = false; // is someone sitting here?
+	private Server  srv    = null;  // waiter/waitress in charge
+	private final List<Item> items = new ArrayList<>();   // live order
 
-	/* -------------------------------------------------------------- */
-
-	public Table(int tableID, int capacity) {
-		this.tableID  = tableID;
-		this.capacity = capacity;
+	/* ctor */
+	public Table(int id, int cap) {
+		this.id  = id;
+		this.cap = cap;
 	}
 
-	/* -------------------------------------------------------------- */
-
-	/** 0 = empty, >0 difference seats-left, −1 if already occupied. */
+	/* seat math:  0 = empty, >0 = seats left, -1 = taken */
 	public int canSeat(int guests) {
-		if (occupied)          return -1;
-		return capacity - guests;
+		return occ ? -1 : cap - guests;
 	}
 
-	/** Seats a party and links this table to the given server. */
+	/* seat a party + hook table into server object */
 	public void seat(int guests, Server s) {
-		numSeated = guests;
-		occupied  = true;
-		server    = s;
-		server.addTable(this);          // keep the Server in sync
+		seated = guests;
+		occ    = true;
+		srv    = s;
+		srv.addTable(this);          // keep server state up-to-date
 	}
 
-	/** Adds a whole ticket in one go. */
+	/* order helpers */
 	public void addItems(List<Item> order) { items.addAll(order); }
-
 	public boolean removeItem(Item i)      { return items.remove(i); }
 
-	/** Clears the table and un-links it from the server. */
+	/* clear everything; detach from server */
 	public void close() {
-		if (server != null) server.removeTable(this);
+		if (srv != null) srv.removeTable(this);
 		items.clear();
-		numSeated = 0;
-		occupied  = false;
-		server    = null;
+		seated = 0;
+		occ    = false;
+		srv    = null;
 	}
 
-	/* -------------------------------------------------------------- */
+	/* getters */
+	public int        getTableID() { return id; }
+	public int        getCapacity(){ return cap; }
+	public int        getNumSeated(){ return seated; }
+	public boolean    isOccupied() { return occ; }
+	public Server     getServer()  { return srv; }
+	public List<Item> getItems()   { return new ArrayList<>(items); }
 
-	public int     getTableID()     { return tableID; }
-	public int     getCapacity()    { return capacity; }
-	public int     getNumSeated()   { return numSeated; }
-	public boolean isOccupied()     { return occupied; }
-	public Server  getServer()      { return server; }
-	public List<Item> getItems()    { return new ArrayList<>(items); }
-
-	public Bill getBill() {                   // server will never be null now
-		return new Bill(new ArrayList<>(items), numSeated, server);
+	/* snapshot of what’s owed right now */
+	public Bill getBill() {
+		return new Bill(new ArrayList<>(items), seated, srv);
 	}
 }
