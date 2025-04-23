@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /* screen to seat / close tables and add items + mods */
-public class OrderManagementPanel extends JPanel {
+public class OrderManagementPanel extends JPanel
+        implements RestaurantModel.ModelListener {          // ← hook into model events
 
     private final RestaurantController controller;
 
@@ -32,6 +33,14 @@ public class OrderManagementPanel extends JPanel {
         refreshServers();
         refreshMods();          // populate with first item’s mods
         refreshOrder();
+
+        /* register for live updates (e.g. new servers) */
+        controller.getModel().addListener(this);
+    }
+
+    /* ------------ model listener callback ------------ */
+    @Override public void modelChanged() {
+        refreshServers();                       // keep server combo in sync
     }
 
     /*layout*/
@@ -94,11 +103,15 @@ public class OrderManagementPanel extends JPanel {
                     .forEach(i -> menuBox.addItem(i.getName()));
     }
 
+    /* called from modelChanged + constructor */
     void refreshServers() {
+        String prev = (String) serverBox.getSelectedItem();
         serverBox.removeAllItems();
         controller.getModel().getServers().values()
                 .forEach(s -> serverBox.addItem(s.getName()));
-        if(serverBox.getItemCount()>0) serverBox.setSelectedIndex(0);
+        if(prev != null) serverBox.setSelectedItem(prev);
+        if(serverBox.getItemCount()>0 && serverBox.getSelectedIndex()<0)
+            serverBox.setSelectedIndex(0);
     }
 
     /* rebuild mod selector based on chosen base item */
@@ -170,9 +183,9 @@ public class OrderManagementPanel extends JPanel {
     }
 
     /*utilities*/
-    private void warn (String m){ JOptionPane.showMessageDialog(this,m,"warning",JOptionPane.WARNING_MESSAGE);}
-    private void info (String m){ JOptionPane.showMessageDialog(this,m,"info",   JOptionPane.INFORMATION_MESSAGE);}
-    private void error(String m){ JOptionPane.showMessageDialog(this,m,"error",  JOptionPane.ERROR_MESSAGE);}
+    private void warn (String m){ JOptionPane.showMessageDialog(this,m,"Warning",JOptionPane.WARNING_MESSAGE);}
+    private void info (String m){ JOptionPane.showMessageDialog(this,m,"Info",   JOptionPane.INFORMATION_MESSAGE);}
+    private void error(String m){ JOptionPane.showMessageDialog(this,m,"Error",  JOptionPane.ERROR_MESSAGE);}
 
     /* colour tables green/ red in combo */
     private class TableComboRenderer extends DefaultListCellRenderer{
