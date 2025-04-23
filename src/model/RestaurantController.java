@@ -1,7 +1,7 @@
 package model;
 
 import java.util.ArrayList;
-import java.util.Map;
+//import java.util.Map;
 
 /*
  * 
@@ -15,7 +15,7 @@ import java.util.Map;
 +getTopTippedServer(): Server
 +sortSalesByFrequency(): List~MenuItem~
 +sortSalesByRevenue(): List~MenuItem~
- */
+*/
 
 public class RestaurantController {
     private RestaurantModel model;
@@ -30,8 +30,12 @@ public class RestaurantController {
     	model.addServer(name);
     }
     
-    public void handleAssignTable(int numTable, int numPeople, String serverName) {
-    	model.assignTableToServer(numTable, numPeople, serverName);
+    public boolean handleRemoveServer(String name) {
+    	return model.removeServer(name);
+    }
+    
+    public boolean handleAssignTable(int numTable, int numPeople, String serverName) {
+    	return model.assignTableToServer(numTable, numPeople, serverName);
     }
     
     public void handleAddOrder(int numTable, ArrayList<Item> items) {
@@ -44,5 +48,9 @@ public class RestaurantController {
     
     public RestaurantModel getModel() {
     	return model;
+    }
+    
+    public ArrayList<Table> getAvalibleTables() {
+    	return model.getAvalbleTables();
     }
 }

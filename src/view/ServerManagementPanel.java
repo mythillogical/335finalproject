@@ -4,19 +4,23 @@ import javax.swing.*;
 import model.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.List;
-import java.util.ArrayList;
+//import java.util.List;
+import java.util.Map;
+//import java.util.ArrayList;
+//import java.util.HashMap;
 //import java.util.DefaultListModel;
 
+@SuppressWarnings("serial")
 public class ServerManagementPanel extends JPanel {
-    private List<Server> servers;
+	private RestaurantController controler;
     private JButton backButton;
     private JList<Server> serverList;
     private DefaultListModel<Server> serverListModel;
     private JTextField nameField;
     
-    public ServerManagementPanel(List<Server> servers) {
-        this.servers = servers;
+    
+    public ServerManagementPanel(RestaurantController controler) {
+        this.controler = controler;
         initializeUI();
     }
     
@@ -37,8 +41,10 @@ public class ServerManagementPanel extends JPanel {
         
         // Server list with scroll pane
         serverListModel = new DefaultListModel<>();
-        for (Server server : servers) {
-            serverListModel.addElement(server);
+        for (Map.Entry<String, Server> entry : 
+        	this.controler.getModel().getServers().entrySet()) {
+        	
+            serverListModel.addElement(entry.getValue());
         }
         serverList = new JList<>(serverListModel);
         JScrollPane scrollPane = new JScrollPane(serverList);
@@ -53,11 +59,9 @@ public class ServerManagementPanel extends JPanel {
         // Button panel for actions
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JButton addButton = new JButton("Add Server");
-        JButton editButton = new JButton("Edit Server");
         JButton deleteButton = new JButton("Delete Server");
         
         buttonPanel.add(addButton);
-        buttonPanel.add(editButton);
         buttonPanel.add(deleteButton);
         
         // Add components to the content panel
@@ -81,12 +85,6 @@ public class ServerManagementPanel extends JPanel {
             }
         });
         
-        editButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                editServer();
-            }
-        });
         
         deleteButton.addActionListener(new ActionListener() {
             @Override
@@ -116,7 +114,7 @@ public class ServerManagementPanel extends JPanel {
         if (!name.isEmpty()) {
             // Assuming the Server constructor can work with just a name
             Server newServer = new Server(name);
-            servers.add(newServer);
+            this.controler.handleAddServer(name);
             serverListModel.addElement(newServer);
             nameField.setText("");
             JOptionPane.showMessageDialog(this, 
@@ -124,26 +122,6 @@ public class ServerManagementPanel extends JPanel {
         } else {
             JOptionPane.showMessageDialog(this, 
                     "Please enter a server name.", "Input Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    
-    private void editServer() {
-        Server selectedServer = serverList.getSelectedValue();
-        if (selectedServer != null) {
-            String name = nameField.getText().trim();
-            
-            if (!name.isEmpty()) {
-                selectedServer.setName(name);
-                serverList.repaint();
-                JOptionPane.showMessageDialog(this, 
-                        "Server updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(this, 
-                        "Please enter a server name.", "Input Error", JOptionPane.ERROR_MESSAGE);
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, 
-                    "Please select a server to edit.", "Selection Error", JOptionPane.ERROR_MESSAGE);
         }
     }
     
@@ -155,7 +133,7 @@ public class ServerManagementPanel extends JPanel {
                     JOptionPane.YES_NO_OPTION);
             
             if (choice == JOptionPane.YES_OPTION) {
-                servers.remove(selectedServer);
+                this.controler.handleRemoveServer(selectedServer.getName());
                 serverListModel.removeElement(selectedServer);
                 nameField.setText("");
             }

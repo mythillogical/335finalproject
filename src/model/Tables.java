@@ -50,6 +50,16 @@ public class Tables {
         }
         return tablesInfo;
     }
+    
+    public ArrayList<Table> getNotOqubiedTable() {
+    	ArrayList<Table> tempTables = new ArrayList<>();
+    	for (Table table : tables) {
+    		if (!table.getIsOccupied()) {
+    			tempTables.add(table);
+    		}
+    	}
+    	return tempTables;
+    }
 
     public ArrayList<TableInfo> getTablesInfo() {
         ArrayList<TableInfo> tablesInfo = new ArrayList<>();
@@ -120,6 +130,10 @@ public class Tables {
     		}
     	}
     	return true;
+    }
+    
+    public ArrayList<Table> getTables() {
+    	return tables;
     }
     
 }

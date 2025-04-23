@@ -47,6 +47,10 @@ public class RestaurantModel {
 		}
 	}
 	
+	public ArrayList<Table> getAvalbleTables() {
+		return tables.getNotOqubiedTable();
+	}
+	
 	public Bill getBillTable(int numTable) {
 		return tables.getBillTable(numTable);
 	}

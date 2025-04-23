@@ -14,6 +14,7 @@ public class Table {
 	public Table(int tableID, int capacity) {
 		this.tableID = tableID;
 		this.capacity = capacity;
+		this.numSeated = 0;
 		this.isOccupied = false;
 		this.items = new ArrayList<>();
 	}
@@ -53,10 +54,9 @@ public class Table {
 	}
 	
 	public Bill getBill() {
-		return new Bill(items, numSeated, server);
+		return new Bill(tableID, items, numSeated, server);
 	}
 	
-
 	public TableInfo getTableInfo() {
 		return new TableInfo(tableID, capacity, numSeated);
 	}
@@ -67,6 +67,22 @@ public class Table {
 	
 	public int getTableId() {
 		return this.tableID;
+	}
+	
+	public int getCapacity() {
+		return this.capacity;
+	}
+	
+	public Server getServer() {
+		return server;
+	}
+	
+	public int getNumPeople() {
+		return this.numSeated;
+	}
+
+	public ArrayList<Item> getItem() {
+		return items;
 	}
 
 }
