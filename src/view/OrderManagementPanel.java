@@ -10,7 +10,7 @@ import java.util.List;
 
 /* screen to seat / close tables and add items + mods */
 public class OrderManagementPanel extends JPanel
-        implements RestaurantModel.ModelListener {          // ← hook into model events
+        implements RestaurantModel.ModelListener { // hook into model events
 
     private final RestaurantController controller;
 
