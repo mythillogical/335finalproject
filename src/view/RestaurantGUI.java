@@ -1,96 +1,100 @@
 package view;
 
-import javax.swing.*;
 import model.*;
-import model.Menu;
+
+import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import java.util.List;
 
+/**
+ * Top-level application frame.  Presents a toolbar with navigation
+ * buttons and lets specialised panels take over the centre when the
+ * user selects a task.
+ */
 public class RestaurantGUI extends JFrame {
-    private List<Server> servers;
-    private Menu menu; // Map<String, ArrayList<Item>> menuMap
 
-    private JButton OrderManagButton; // this for order management button
-    private JButton salesRepoButton; // this is for sales report button
-    private JButton serverRepoButton; //this is for server report button
-    private JButton severManagButton; // this is for server management
+    /* ------------------------------------------------------------------
+       BACK-END MVC INSTANCES
+       ------------------------------------------------------------------ */
+    private final RestaurantModel      model       = new RestaurantModel();
+    private final RestaurantView       view        = new RestaurantView(this);
+    private final RestaurantController controller  = new RestaurantController(model, view);
 
-    private JPanel mainPanel;
-    private ServerManagementPanel serverManagementPanel;
+    /* ------------------------------------------------------------------
+       NAVIGATION BUTTONS
+       ------------------------------------------------------------------ */
+    private final JButton btnServers = new JButton("Server Management");
+    private final JButton btnOrders  = new JButton("Order Management");
+    private final JButton btnSales   = new JButton("Sales Report");
+
+    /* lazily created panels */
+    private ServerManagementPanel serverPane;
+    private OrderManagementPanel  orderPane;
+    private SalesReportPanel      salesPane;
 
     public RestaurantGUI() {
-        menu = new Menu("Menu.csv");
-        servers = new ArrayList<>();
+        /* Try Aqua for an “Apple” look; ignore if not on macOS */
+        try { UIManager.setLookAndFeel("com.apple.laf.AquaLookAndFeel"); }
+        catch (Exception ignored) { UIManager.put("swing.boldMetal", Boolean.FALSE); }
+        SwingUtilities.updateComponentTreeUI(this);
 
         setTitle("Restaurant Management System");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setSize(1000, 700);
         setLocationRelativeTo(null);
 
-        severManagButton = new JButton("Server Management");
-        OrderManagButton = new JButton("Order Management");
-        serverRepoButton = new JButton("Server Reports");
-        salesRepoButton = new JButton("Sales Reports");
+        /* toolbar ------------------------------------------------------- */
+        JToolBar bar = new JToolBar();
+        bar.setFloatable(false);
+        bar.add(btnServers);
+        bar.add(btnOrders);
+        bar.add(btnSales);
+        getContentPane().add(bar, BorderLayout.NORTH);
 
-        initializeUI();
-        setupActionListeners();
-    }
-
-    private void initializeUI() {
-        mainPanel = new JPanel(new BorderLayout());
-        JPanel centerPanel = new JPanel(new GridLayout(4, 1, 10, 10));
-        centerPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        centerPanel.add(severManagButton);
-
-        // add processing for Order Manage under hear
-        centerPanel.add(OrderManagButton);
-
-        // add processing for Sales Reports under hear
-        centerPanel.add(salesRepoButton);
-
-        // add processing for Severs Reports under hear
-        centerPanel.add(serverRepoButton);
-
-        mainPanel.add(centerPanel, BorderLayout.CENTER);
-        add(mainPanel);
-        
-        // Initialize server management panel
-        serverManagementPanel = new ServerManagementPanel(servers);
-    }
-    
-    private void setupActionListeners() {
-        severManagButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showServerManagementPanel();
-            }
+        /* button wiring ------------------------------------------------- */
+        btnServers.addActionListener(e -> {
+            if (serverPane == null)
+                serverPane = new ServerManagementPanel(controller, this);
+            swapCenter(serverPane);
         });
-        
-        // Add action listener to the back button in server management panel
-        serverManagementPanel.getBackButton().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showMainPanel();
-            }
+
+        btnOrders.addActionListener(e -> {
+            if (orderPane == null)
+                orderPane = new OrderManagementPanel(controller);
+            swapCenter(orderPane);
         });
+
+        btnSales.addActionListener(e -> {
+            if (salesPane == null)
+                salesPane = new SalesReportPanel(controller);
+            salesPane.refresh();
+            swapCenter(salesPane);
+        });
+
+        /* initial screen: table overview ------------------------------- */
+        showMainPanel();
+        setVisible(true);
     }
-    
-    private void showServerManagementPanel() {
-        // Remove current panel and add server management panel
-        getContentPane().removeAll();
-        getContentPane().add(serverManagementPanel);
-        getContentPane().revalidate();
-        getContentPane().repaint();
+
+    /** Called by child panels to return to the overview. */
+    public void showMainPanel() {
+        view.displayTables(model.getTables().getTablesInfo());
+        swapCenter(view.getRootPanel());
     }
-    
-    private void showMainPanel() {
-        // Remove current panel and add main panel
-        getContentPane().removeAll();
-        getContentPane().add(mainPanel);
-        getContentPane().revalidate();
-        getContentPane().repaint();
+
+    /* ------------------------------------------------------------------
+       CENTRE-PANEL SWAPPER
+       ------------------------------------------------------------------ */
+    private void swapCenter(JComponent next) {
+        Container cp = getContentPane();
+        BorderLayout bl = (BorderLayout) cp.getLayout();
+
+        /* remove whatever is currently in the CENTER (if any) */
+        Component old = bl.getLayoutComponent(BorderLayout.CENTER);
+        if (old != null) cp.remove(old);
+
+        /* add new component and refresh */
+        cp.add(next, BorderLayout.CENTER);
+        revalidate();
+        repaint();
     }
 }

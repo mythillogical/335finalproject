@@ -1,48 +1,41 @@
+/* src/model/RestaurantController.java */
 package model;
 
+import view.RestaurantView;
 import java.util.ArrayList;
-import java.util.Map;
-
-/*
- * 
-+handleAddServer(serverID: String, name: String): void
-+handleAssignTable(tableNumber: int, serverID: String): void
-+handleAddOrder(tableNumber: int, items: List~MenuItem~): void
-+handleCloseOrder(tableNumber: int, tip: double): void
-+handleShowSalesReport(): void
-+getSalesByItem(): Map~MenuItem, Integer~
-+getRevenueByItem(): Map~MenuItem, Double~
-+getTopTippedServer(): Server
-+sortSalesByFrequency(): List~MenuItem~
-+sortSalesByRevenue(): List~MenuItem~
- */
 
 public class RestaurantController {
-    private RestaurantModel model;
-    //private RestaurantView view;
 
-    public RestaurantController(RestaurantModel model) {
+    private final RestaurantModel model;
+    private final RestaurantView view;
+
+    public RestaurantController(RestaurantModel model, RestaurantView view) {
         this.model = model;
-        //this.view = view;
+        this.view = view;
     }
-    
+
     public void handleAddServer(String name) {
-    	model.addServer(name);
+        model.addServer(name);
     }
-    
+
     public void handleAssignTable(int numTable, int numPeople, String serverName) {
-    	model.assignTableToServer(numTable, numPeople, serverName);
+        if (!model.assignTableToServer(numTable, numPeople, serverName))
+            view.displayError("Could not assign table.");
+        else
+            view.displayTables(model.getTables().getTablesInfo());
     }
-    
+
     public void handleAddOrder(int numTable, ArrayList<Item> items) {
-    	model.addOrderToTable(numTable, items);
+        model.addOrderToTable(numTable, items);
+        view.displayTables(model.getTables().getTablesInfo());
     }
-    
+
     public void handleCloseTable(int tableNumber, double tip) {
-    	model.closeTable(tableNumber, tip);
+        model.closeTable(tableNumber, tip);
+        view.displayTables(model.getTables().getTablesInfo());
     }
-    
+
     public RestaurantModel getModel() {
-    	return model;
+        return model;
     }
 }
