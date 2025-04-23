@@ -1,70 +1,62 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.io.FileWriter;
+import java.util.*;
 
+/* central state holder with simple observer */
 public class RestaurantModel {
 
-	// holds menu items
-	private final Menu menu = new Menu("Menu.csv");
-	// tracks all tables
+	public interface ModelListener{ void modelChanged(); }
+	private final List<ModelListener> listeners=new ArrayList<>();
+	private void fire(){ listeners.forEach(ModelListener::modelChanged); }
+	public void addListener(ModelListener l){ listeners.add(l); }
+	public void removeListener(ModelListener l){ listeners.remove(l); }
+
+	private final Menu   menu   = new Menu("Menu.csv");
 	private final Tables tables = new Tables("tables.txt");
-	// active servers mapped by name
-	private final HashMap<String, Server> servers = new HashMap<>();
-	// list of closed bills with tips
-	private final ArrayList<Bill> closedTables = new ArrayList<>();
+	private final Map<String,Server> servers=new HashMap<>();
+	private final List<Bill> closed=new ArrayList<>();
 
-	// add a new server
-	public void addServer(String name) {
-		servers.put(name, new Server(name));
+	/* menu persistence */
+	public void addMenuItem(Item i){ menu.addItem(i); saveMenu(); fire(); }
+	public void removeMenuItem(Item i){ menu.removeItem(i); saveMenu(); fire(); }
+
+	private void saveMenu(){
+		try(FileWriter w=new FileWriter("Menu.csv")){
+			w.write("Category,Name,Cost,Mods\n");
+			for(Item it:menu.getAllItems()){
+				w.write(String.format("%s,%s,%.2f,%s\n",
+						it.getCategory(),it.getName(),it.getCost(),it.modsToCsv()));
+			}
+		}catch(Exception ignored){}
 	}
 
-	// remove an existing server by name
-	public boolean removeServer(String name) {
-		return servers.remove(name) != null;
+	/* server ops */
+	public void addServer(String n){ servers.put(n,new Server(n)); fire(); }
+	public boolean removeServer(String n){
+		boolean ok=servers.remove(n)!=null; if(ok) fire(); return ok;
 	}
 
-	// seat guests at a table with a server, return false if fail
-	public boolean assignTableToServer(int id, int guests, String server) {
-		return tables.assignTable(id, guests, servers.get(server));
+	/* seating / orders */
+	public boolean assignTableToServer(int id,int g,String s){
+		boolean ok=tables.assignTable(id,g,servers.get(s)); if(ok) fire(); return ok;
 	}
-
-	// add order items to a table
-	public void addOrderToTable(int id, ArrayList<Item> order) {
-		tables.addItemsOrderToTable(id, order);
+	public void addOrderToTable(int id,ArrayList<Item> ord){
+		tables.addItemsOrderToTable(id,ord); fire();
 	}
-
-	// close a table, record bill and add tip to server
-	public void closeTable(int id, double tip) {
-		Bill b = tables.getBillTable(id); // capture items and server
-		tables.closeTable(id);
-		if (b != null) {
-			// create new bill including tip
-			Bill withTip = new Bill(
-					new ArrayList<>(b.getItems()),
-					b.getPeople(),
-					b.getServer(),
-					tip
-			);
-			closedTables.add(withTip);
-			servers.get(withTip.getServer().getName()).addTips(tip);
+	public void closeTable(int id,double tip){
+		Bill b=tables.getBillTable(id); tables.closeTable(id);
+		if(b!=null){
+			Bill bt=new Bill(new ArrayList<>(b.getItems()),
+					b.getPeople(),b.getServer(),tip);
+			closed.add(bt); servers.get(bt.getServer().getName()).addTips(tip);
 		}
+		fire();
 	}
 
-	// getters for model data
-	public Menu getMenu() {
-		return menu;
-	}
-
-	public Tables getTables() {
-		return tables;
-	}
-
-	public HashMap<String, Server> getServers() {
-		return servers;
-	}
-
-	public ArrayList<Bill> getClosedTables() {
-		return closedTables;
-	}
+	/* getters */
+	public Menu           getMenu(){ return menu; }
+	public Tables         getTables(){ return tables; }
+	public Map<String,Server> getServers(){ return servers; }
+	public List<Bill>     getClosedTables(){ return closed; }
 }
