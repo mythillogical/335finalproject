@@ -1,125 +1,91 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.*;
 
 public class Tables {
-    private ArrayList<Table> tables;
 
-    public Tables(String filePath) {
-        tables = new ArrayList<>();
-        readFile(filePath);
-    }
-    
-    private void readFile(String filePath) {
-    	try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.trim().split("\\s+");
+    private final List<Table> tables = new ArrayList<>();
+
+    public Tables(String filePath) { readFile(filePath); }
+
+    /* -------------------------------------------------------------- */
+
+    private void readFile(String path) {
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+            String ln;
+            while ((ln = br.readLine()) != null) {
+                String[] parts = ln.trim().split("\\s+");
                 if (parts.length == 2) {
-                    int numTab = Integer.parseInt(parts[0]);
-                    int capacity = Integer.parseInt(parts[1]);
-                    tables.add(new Table(numTab, capacity));
+                    int id  = Integer.parseInt(parts[0]);
+                    int cap = Integer.parseInt(parts[1]);
+                    tables.add(new Table(id, cap));
                 }
             }
-            
-            Collections.sort(tables, Comparator.comparingInt(table -> table.getTableId()));
-        	
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            tables.sort(Comparator.comparingInt(Table::getTableID));
+        } catch (IOException ex) { ex.printStackTrace(); }
     }
 
-    public ArrayList<TableInfo> getAvailable(int people) {
-        ArrayList<Table> available = new ArrayList<>();
-        for (Table table : tables) {
-            if (table.canSeat(people) >= 0) {
-                available.add(table);
-            }
-        }
+    /* -------------------------------------------------------------- */
 
-        // Collections.sort(available, Comparator.comparing(table -> table.canSeat(people)));
-        ArrayList<TableInfo> tablesInfo = new ArrayList<>();
-
-        for (Table table : available) {
-            tablesInfo.add(table.getTableInfo());
-        }
-        return tablesInfo;
+    /** Assigns *and* seats a server + guests if possible. */
+    public boolean assignTable(int id, int guests, Server s) {
+        Table t = getTable(id);
+        if (t == null)         return false;
+        if (t.canSeat(guests) < 0) return false;   // already taken
+        if (t.canSeat(guests) < 0) return false;   // over capacity
+        t.seat(guests, s);
+        return true;
     }
 
-    public ArrayList<TableInfo> getTablesInfo() {
-        ArrayList<TableInfo> tablesInfo = new ArrayList<>();
-        for (Table table : tables) {
-            tablesInfo.add(table.getTableInfo());
-        }
-        return tablesInfo;
+    public void addItemsOrderToTable(int id, List<Item> order) {
+        Table t = getTable(id);
+        if (t != null && t.isOccupied()) t.addItems(order);
     }
 
-    public void closeTable(int numTable) {
-        for (Table table : tables) {
-            if (table.getTableId() == numTable) {
-                table.close();
-            }
-        }
+    public boolean removeItemFromTable(int id, Item i) {
+        Table t = getTable(id);
+        return t != null && t.removeItem(i);
     }
-    
-    public Bill getBillTable(int numTable){
-    	for (Table table : tables) {
-            if (table.getTableId() == numTable) {
-            	return table.getBill();
-            }
-    	}
-    	return null;
+
+    public void closeTable(int id) {
+        Table t = getTable(id);
+        if (t != null) t.close();
     }
-    
-    public ArrayList<Table> getOccuipiedTables() {
-    	ArrayList<Table> tables = new ArrayList<>();
-    	for (Table table : this.tables) {
-            if (table.getIsOccupied()) {
-                tables.add(table);
-            }
-        }
-    	return tables;
+
+    /* -------------------------------------------------------------- */
+
+    public Table           getTable(int id)         { return tables.stream()
+            .filter(t -> t.getTableID()==id)
+            .findFirst().orElse(null); }
+
+    public List<TableInfo> getTablesInfo()          {
+        List<TableInfo> out = new ArrayList<>();
+        tables.forEach(t -> out.add(new TableInfo(t.getTableID(),
+                t.getCapacity(),
+                t.getNumSeated())));
+        return out;
     }
-    
-    public Table getTable(int numTable) {
-    	for (Table table : tables) {
-    		if (table.getTableId() == numTable) {
-    			return table;
-    		}
-    	}
-    	return null;
+
+    public List<TableInfo> getAvailable(int guests){
+        List<TableInfo> out = new ArrayList<>();
+        tables.stream().filter(t -> t.canSeat(guests) >= 0)
+                .forEach(t -> out.add(new TableInfo(t.getTableID(),
+                        t.getCapacity(),
+                        t.getNumSeated())));
+        return out;
     }
-    
-    public boolean assignTable(int numTable, int numPeople, Server server) {
-    	for (Table table : tables) {
-    		if (table.getTableId() == numTable) {
-    			table.seat(numPeople, server);
-    			return true;
-    		}
-    	}
-    	return false;
+
+    public List<Table> getOccupiedTables() {
+        List<Table> out = new ArrayList<>();
+        tables.stream().filter(Table::isOccupied).forEach(out::add);
+        return out;
     }
-    
-    public void addItemsOrderToTable(int numTable, ArrayList<Item> items) {
-    	for (Table table : tables) {
-    		if (table.getTableId() == numTable) {
-    			table.addItems(items);
-    		}
-    	}
+
+    public Bill getBillTable(int id) {
+        Table t = getTable(id);
+        return t == null ? null : t.getBill();
     }
-    
-    public boolean removeItemFromTable(int numTable, Item item) {
-    	for (Table table : tables) {
-    		if (table.getTableId() == numTable) {
-    			return table.removeItem(item.getName());
-    		}
-    	}
-    	return true;
-    }
-    
 }

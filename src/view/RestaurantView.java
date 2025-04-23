@@ -13,16 +13,16 @@ import java.util.List;
  */
 public class RestaurantView {
 
-    private final JFrame  frame;
-    private final JPanel  swapPanel;
+    private final JFrame frame;
+    private final JPanel swapPanel;
 
     public RestaurantView(JFrame frame) {
-        this.frame     = frame;
+        this.frame = frame;
         this.swapPanel = new JPanel(new BorderLayout());
         frame.getContentPane().add(swapPanel, BorderLayout.CENTER);
     }
 
-    /* public access so RestaurantGUI can re-attach the panel when needed */
+    /* Allow RestaurantGUI to reuse the panel when showing the overview. */
     public JPanel getRootPanel() { return swapPanel; }
 
     /* ------------------------------------------------------------------
@@ -68,9 +68,9 @@ public class RestaurantView {
         sb.append("Bill for table ").append(tableNumber).append("\n\n")
                 .append("Total: $").append(String.format("%.2f", bill.getTotalCost())).append("\n")
                 .append("Split evenly: $").append(String.format("%.2f", bill.getCostSplitEvenly())).append("\n\n");
-        if (bill.getServer() != null)
+        if (bill.getServer() != null) {
             sb.append("Server: ").append(bill.getServer().getName()).append("\n");
-
+        }
         JTextArea ta = new JTextArea(sb.toString());
         ta.setEditable(false);
         ta.setFont(new Font("Monospaced", Font.PLAIN, 14));

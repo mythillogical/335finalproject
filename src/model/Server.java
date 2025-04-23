@@ -1,43 +1,34 @@
 package model;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
+/** A waiter / waitress currently working in the restaurant. */
 public class Server {
-	private String name;
-	private double totalTips;
-	// private ArrayList<Table> tables;
-	
-	public Server (String name) {
-		this.name = name;
-		this.totalTips = 0;
+
+	private final String  name;
+	private       double  tips = 0.0;
+	private final Set<Table> tables = new HashSet<>();
+
+	/* -------------------------------------------------------------- */
+
+	public Server(String name) { this.name = name; }
+
+	/* bookkeeping (package-private – only Table should call these) */
+	void addTable(Table t)    { tables.add(t); }
+	void removeTable(Table t) { tables.remove(t); }
+
+	/* -------------------------------------------------------------- */
+
+	public String  getName()          { return name; }
+	public double  getTotalTips()     { return tips; }
+	public int     getNumTables()     { return tables.size(); }
+	public Set<Table> getTables()     { return Collections.unmodifiableSet(tables); }
+
+	public void addTips(double amount){ tips += amount; }
+
+	@Override public String toString() {
+		return String.format("%s · %d tbl · $%.2f", name, getNumTables(), tips);
 	}
-
-	public void addTips(double amount) {
-		this.totalTips += amount; 
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public double getTotalTips() {
-		return totalTips;
-	}
-	
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	//public ArrayList<Table> getTables() { return new ArrayList<>(tables); }
-
-	//public int getNumTables() { return tables.size(); }
-
-	//public void assignTable(Table table) { tables.add(table); }
-
-	//public void removeTable(Table table) { tables.remove(table); }
-
-	@Override
-    public String toString() {
-    	return name + "\t" + Double.toString(totalTips);
-    }
 }

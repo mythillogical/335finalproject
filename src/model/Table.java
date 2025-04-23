@@ -1,72 +1,66 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.List;
 
+/** One physical table in the dining room. */
 public class Table {
-	private int tableID;
-	private final int capacity;
-	private int numSeated;
-	// private int orders;
-	private boolean isOccupied;
-	private Server server;
-	private ArrayList<Item> items;
+
+	private final int   tableID;
+	private final int   capacity;
+
+	private int         numSeated = 0;
+	private boolean     occupied  = false;
+	private Server      server    = null;
+	private final List<Item> items = new ArrayList<>();
+
+	/* -------------------------------------------------------------- */
 
 	public Table(int tableID, int capacity) {
-		this.tableID = tableID;
+		this.tableID  = tableID;
 		this.capacity = capacity;
-		this.isOccupied = false;
-		this.items = new ArrayList<>();
 	}
 
-	public int canSeat(int people) {
-		if (numSeated != 0) return -1;
-		return capacity - people;
+	/* -------------------------------------------------------------- */
+
+	/** 0 = empty, >0 difference seats-left, −1 if already occupied. */
+	public int canSeat(int guests) {
+		if (occupied)          return -1;
+		return capacity - guests;
 	}
 
-	/*
-	 * @pre numSeated == 0
-	 */
-	public void seat(int people, Server server) {
-		numSeated += people;
-		this.isOccupied = true;
-		this.server = server;
+	/** Seats a party and links this table to the given server. */
+	public void seat(int guests, Server s) {
+		numSeated = guests;
+		occupied  = true;
+		server    = s;
+		server.addTable(this);          // keep the Server in sync
 	}
 
-	public void addItems(ArrayList<Item> items) {
-		this.items.addAll(items);
-		// orders++;
-	}
-	
-	public void addItem(Item item) {
-		items.add(item);
-	}
-	
-	public boolean removeItem(String itemName) {
-		return items.removeIf(item -> item.getName().equals(itemName));
-	}
+	/** Adds a whole ticket in one go. */
+	public void addItems(List<Item> order) { items.addAll(order); }
 
+	public boolean removeItem(Item i)      { return items.remove(i); }
+
+	/** Clears the table and un-links it from the server. */
 	public void close() {
+		if (server != null) server.removeTable(this);
+		items.clear();
 		numSeated = 0;
-		server = null;
-		this.isOccupied = false;
-		items = new ArrayList<>();
-	}
-	
-	public Bill getBill() {
-		return new Bill(items, numSeated, server);
-	}
-	
-
-	public TableInfo getTableInfo() {
-		return new TableInfo(tableID, capacity, numSeated);
-	}
-	
-	public boolean getIsOccupied() {
-		return this.isOccupied;
-	}
-	
-	public int getTableId() {
-		return this.tableID;
+		occupied  = false;
+		server    = null;
 	}
 
+	/* -------------------------------------------------------------- */
+
+	public int     getTableID()     { return tableID; }
+	public int     getCapacity()    { return capacity; }
+	public int     getNumSeated()   { return numSeated; }
+	public boolean isOccupied()     { return occupied; }
+	public Server  getServer()      { return server; }
+	public List<Item> getItems()    { return new ArrayList<>(items); }
+
+	public Bill getBill() {                   // server will never be null now
+		return new Bill(new ArrayList<>(items), numSeated, server);
+	}
 }
