@@ -16,5 +16,9 @@ public class TableInfo {
     public int getCapacity() { return capacity; }
 
     public int getSeated() { return seated; }
+    
+    public String toString() {
+    	return Integer.toString(id) + " " + Integer.toString(capacity);
+    }
 
 }

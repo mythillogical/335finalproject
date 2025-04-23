@@ -3,16 +3,18 @@ package model;
 import java.util.ArrayList;
 
 public class Table {
-	private int tableId;
+	private int tableID;
 	private final int capacity;
 	private int numSeated;
-	private int orders;
+	// private int orders;
+	private boolean isOccupied;
 	private Server server;
 	private ArrayList<Item> items;
 
 	public Table(int tableID, int capacity) {
 		this.tableID = tableID;
 		this.capacity = capacity;
+		this.isOccupied = false;
 		this.items = new ArrayList<>();
 	}
 
@@ -26,28 +28,45 @@ public class Table {
 	 */
 	public void seat(int people, Server server) {
 		numSeated += people;
+		this.isOccupied = true;
 		this.server = server;
 	}
 
 	public void addItems(ArrayList<Item> items) {
 		this.items.addAll(items);
-		orders++;
+		// orders++;
+	}
+	
+	public void addItem(Item item) {
+		items.add(item);
+	}
+	
+	public boolean removeItem(String itemName) {
+		return items.removeIf(item -> item.getName().equals(itemName));
 	}
 
-	public Bill close() {
-		Bill bill = new Bill(items, numSeated, server);
+	public void close() {
 		numSeated = 0;
 		server = null;
+		this.isOccupied = false;
 		items = new ArrayList<>();
-		return bill;
 	}
+	
+	public Bill getBill() {
+		return new Bill(items, numSeated, server);
+	}
+	
 
 	public TableInfo getTableInfo() {
-		return new TableInfo(tableId, capacity, numSeated);
+		return new TableInfo(tableID, capacity, numSeated);
 	}
-
-	public int getId() {
-		return tableId;
+	
+	public boolean getIsOccupied() {
+		return this.isOccupied;
+	}
+	
+	public int getTableId() {
+		return this.tableID;
 	}
 
 }
