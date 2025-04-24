@@ -1,43 +1,59 @@
 package model;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
+// stores server name, tips, and assigned tables
 public class Server {
-	private String name;
-	private double totalTips;
-	// private ArrayList<Table> tables;
-	
-	public Server (String name) {
+
+	private final String name;
+	private double tips = 0.0;
+	private final Set<Table> tables = new HashSet<>();
+
+	// ctor: init server with name
+	public Server(String name) {
 		this.name = name;
-		this.totalTips = 0;
 	}
 
-	public void addTips(double amount) {
-		this.totalTips += amount; 
+	// add a table assignment
+	void addTable(Table t) {
+		tables.add(t);
 	}
 
+	// remove a table assignment
+	void removeTable(Table t) {
+		tables.remove(t);
+	}
+
+	// get server name
 	public String getName() {
 		return name;
 	}
 
+	// get total tips amount
 	public double getTotalTips() {
-		return totalTips;
-	}
-	
-	public void setName(String name) {
-		this.name = name;
+		return tips;
 	}
 
-	//public ArrayList<Table> getTables() { return new ArrayList<>(tables); }
+	// get count of tables served
+	public int getNumTables() {
+		return tables.size();
+	}
 
-	//public int getNumTables() { return tables.size(); }
+	// get set of assigned tables (read-only)
+	public Set<Table> getTables() {
+		return Collections.unmodifiableSet(tables);
+	}
 
-	//public void assignTable(Table table) { tables.add(table); }
+	// add tip amount
+	public void addTips(double amount) {
+		tips += amount;
+	}
 
-	//public void removeTable(Table table) { tables.remove(table); }
-
+	// format server info for display
 	@Override
-    public String toString() {
-    	return name + "\t" + Double.toString(totalTips);
-    }
+	public String toString() {
+		return String.format("%s · %d tbl · $%.2f", name, getNumTables(), tips);
+	}
 }

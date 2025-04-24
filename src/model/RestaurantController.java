@@ -1,48 +1,50 @@
 package model;
 
+import view.RestaurantView;
 import java.util.ArrayList;
-import java.util.Map;
-
-/*
- * 
-+handleAddServer(serverID: String, name: String): void
-+handleAssignTable(tableNumber: int, serverID: String): void
-+handleAddOrder(tableNumber: int, items: List~MenuItem~): void
-+handleCloseOrder(tableNumber: int, tip: double): void
-+handleShowSalesReport(): void
-+getSalesByItem(): Map~MenuItem, Integer~
-+getRevenueByItem(): Map~MenuItem, Double~
-+getTopTippedServer(): Server
-+sortSalesByFrequency(): List~MenuItem~
-+sortSalesByRevenue(): List~MenuItem~
- */
 
 public class RestaurantController {
-    private RestaurantModel model;
-    //private RestaurantView view;
 
-    public RestaurantController(RestaurantModel model) {
-        this.model = model;
-        //this.view = view;
+    private final RestaurantModel model;
+    private final RestaurantView view;
+
+    public RestaurantController(RestaurantModel m, RestaurantView v) {
+        // Set the model and view for this controller
+        model = m;
+        view = v;
     }
-    
+
+    // server operations: add or remove a server
     public void handleAddServer(String name) {
-    	model.addServer(name);
+        model.addServer(name);
     }
-    
-    public void handleAssignTable(int numTable, int numPeople, String serverName) {
-    	model.assignTableToServer(numTable, numPeople, serverName);
+    public boolean handleRemoveServer(String name) {
+        return model.removeServer(name);
     }
-    
-    public void handleAddOrder(int numTable, ArrayList<Item> items) {
-    	model.addOrderToTable(numTable, items);
+
+    // seating operations: assign or close a table
+    public boolean handleAssignTable(int id, int guests, String server) {
+        boolean ok = model.assignTableToServer(id, guests, server);
+        if (!ok) {
+            view.displayError("Could not assign table (check capacity / availability)");
+        } else {
+            view.displayTables(model.getTables().getTablesInfo());
+        }
+        return ok;
     }
-    
-    public void handleCloseTable(int tableNumber, double tip) {
-    	model.closeTable(tableNumber, tip);
+
+    public void handleCloseTable(int id, double tip) {
+        model.closeTable(id, tip);
+        view.displayTables(model.getTables().getTablesInfo());
     }
-    
+
+    // order operations: add items to a table order
+    public void handleAddOrder(int id, ArrayList<Item> items) {
+        model.addOrderToTable(id, items);
+    }
+
+    // expose the model for view access or testing
     public RestaurantModel getModel() {
-    	return model;
+        return model;
     }
 }

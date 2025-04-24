@@ -1,17 +1,9 @@
 package view;
 
-import javax.swing.SwingUtilities;
-
+// launcher class to start the restaurant gui
 public class Main {
-
 	public static void main(String[] args) {
-		SwingUtilities.invokeLater(() -> {
-	        try {
-	            new RestaurantGUI().setVisible(true);
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
-	    });
+		// delegate to RestaurantGUI
+		RestaurantGUI.main(args);
 	}
-
 }
