@@ -6,10 +6,9 @@ import java.util.List;
 /** snapshot of bill when table closes */
 public class Bill {
 
-    private final List<Item> items;
-    private final int people;
-    private final Server server;
-    }
+    private final List<Item> items = null;
+    private final int people = 0;
+    private final Server server = null;
 
     /** cost of ordered items */
     public double getItemsCost() {
@@ -18,12 +17,12 @@ public class Bill {
 
     /** total cost including tip */
     public double getTotalCost() {
-        return getItemsCost() + tip;
+        return getItemsCost();
     }
 
     /** split cost evenly among people */
     public double getCostSplitEvenly() {
-        return people == 0 ? 0 : getTotalCost() / people;
+        return getTotalCost() / people;
     }
 
     public List<Item> getItems() {
@@ -38,4 +37,4 @@ public class Bill {
         return server;
     }
 
-
+}

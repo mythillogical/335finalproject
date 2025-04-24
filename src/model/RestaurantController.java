@@ -6,15 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/*
- * 
-+handleAddServer(serverID: String, name: String): void
-+handleAssignTable(tableNumber: int, serverID: String): void
-+handleAddOrder(tableNumber: int, items: List~MenuItem~): void
-+handleCloseOrder(tableNumber: int, tip: double): void
-+handleShowSalesReport(): void
-+getTopTippedServer(): Server
-*/
 
 public class RestaurantController {
     private RestaurantModel model;
