@@ -17,12 +17,12 @@ public class Server {
 	}
 
 	// add a table assignment
-	void addTable(Table t) {
+	public void addTable(Table t) {
 		tables.add(t);
 	}
 
 	// remove a table assignment
-	void removeTable(Table t) {
+	public void removeTable(Table t) {
 		tables.remove(t);
 	}
 
