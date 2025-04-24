@@ -10,7 +10,7 @@ public class Item {
     private final String name;
     private final String category;
     private final double baseCost;
-    private final List<Modification> mods;
+    private List<Modification> mods;
 
     /* plain item – no modifications yet */
     public Item(String n, String c, double cost) {
@@ -73,7 +73,8 @@ public class Item {
         return sb.toString();
     }
 
-    @Override public String toString() {
+    @Override 
+    public String toString() {
         return name + " $" + baseCost;
     }
 }

@@ -7,8 +7,8 @@ import java.util.*;
 /* full in-memory menu with add / remove support */
 public class Menu {
 
-	private final Map<String,List<Item>> map = new HashMap<>();
-	private final List<Item> all = new ArrayList<>();
+	private Map<String,List<Item>> map = new HashMap<>();
+	private List<Item> all = new ArrayList<>();
 
 	public Menu(String csv){ read(csv); }
 

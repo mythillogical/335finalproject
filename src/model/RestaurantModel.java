@@ -18,15 +18,15 @@ public class RestaurantModel {
 	private final List<Bill> closed=new ArrayList<>();
 
 	/* menu persistence */
-	public void addMenuItem(Item i){ menu.addItem(i); saveMenu(); fire(); }
-	public void removeMenuItem(Item i){ menu.removeItem(i); saveMenu(); fire(); }
+	public void addMenuItem(Item i){ menu.addItem(i);; saveMenu(); fire(); }
+	public void removeMenuItem(Item i){ menu.removeItem(i);; saveMenu(); fire(); }
 
 	private void saveMenu(){
 		try(FileWriter w=new FileWriter("Menu.csv")){
 			w.write("Category,Name,Cost,Mods\n");
 			for(Item it:menu.getAllItems()){
 				w.write(String.format("%s,%s,%.2f,%s\n",
-						it.getCategory(),it.getName(),it.getCost(),it.modsToCsv()));
+						it.getCategory(), it.getName(), it.getCost(), it.modsToCsv()));
 			}
 		}catch(Exception ignored){}
 	}
