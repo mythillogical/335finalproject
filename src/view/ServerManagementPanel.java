@@ -5,20 +5,19 @@ import model.*;
 import javax.swing.*;
 import java.awt.*;
 
-/* crud panel for servers */
+/* nicer CRUD ui for servers – includes active-table guard */
 public class ServerManagementPanel extends JPanel
         implements RestaurantModel.ModelListener {
 
-    private final RestaurantController controller;
+    private final RestaurantController ctrl;
     private final DefaultListModel<Server> listModel = new DefaultListModel<>();
-    private final JList<Server> serverList = new JList<>(listModel);
-    private final JTextField nameField = new JTextField(18);
+    private final JList<Server>            lst       = new JList<>(listModel);
+    private final JTextField nameTxt = new JTextField(18);
 
     public ServerManagementPanel(RestaurantController c){
-        controller=c;
-        buildUi();
-        refresh();
-        controller.getModel().addListener(this);
+        ctrl = c;
+        buildUi(); refresh();
+        ctrl.getModel().addListener(this);
     }
     @Override public void modelChanged(){ refresh(); }
 
@@ -26,27 +25,33 @@ public class ServerManagementPanel extends JPanel
         setLayout(new BorderLayout(10,10));
         setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
 
-        add(new JLabel("Server Management",SwingConstants.CENTER),BorderLayout.NORTH);
-        add(new JScrollPane(serverList),BorderLayout.CENTER);
+        add(new JLabel("server management",SwingConstants.CENTER),BorderLayout.NORTH);
+        add(new JScrollPane(lst),BorderLayout.CENTER);
 
-        JPanel south=new JPanel(new FlowLayout(FlowLayout.LEFT));
-        south.add(new JLabel("Name:")); south.add(nameField);
+        JPanel south = new JPanel(new FlowLayout(FlowLayout.LEFT,8,0));
+        south.add(new JLabel("Name:")); south.add(nameTxt);
 
-        JButton add=new JButton("Add"); south.add(add);
-        add.addActionListener(e->{
-            String n=nameField.getText().trim();
-            if(!n.isEmpty()){ controller.handleAddServer(n); nameField.setText(""); }
+        JButton addBtn = new JButton("Add"); south.add(addBtn);
+        addBtn.addActionListener(e -> {
+            String n = nameTxt.getText().trim();
+            if(!n.isEmpty()){ ctrl.handleAddServer(n); nameTxt.setText(""); }
         });
 
-        JButton rem=new JButton("Remove Selected"); south.add(rem);
-        rem.addActionListener(e->{
-            Server s=serverList.getSelectedValue();
-            if(s!=null) controller.handleRemoveServer(s.getName());
+        JButton delBtn = new JButton("Remove Selected"); south.add(delBtn);
+        delBtn.addActionListener(e -> {
+            Server s = lst.getSelectedValue();
+            if(s==null) return;
+            if(ctrl.checkActiveServer(s.getName())){
+                JOptionPane.showMessageDialog(this,
+                        "server still has active tables","warning",JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            ctrl.handleRemoveServer(s.getName());
         });
         add(south,BorderLayout.SOUTH);
     }
     private void refresh(){
         listModel.clear();
-        controller.getModel().getServers().values().forEach(listModel::addElement);
+        ctrl.getModel().getServers().values().forEach(listModel::addElement);
     }
 }
