@@ -5,16 +5,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+/* manages all restaurant tables */
 public class Tables {
-    // list of all tables
+
+    /* full list kept in the order file declared it */
     private final List<Table> tables = new ArrayList<>();
 
-    // load table definitions from file
-    public Tables(String filePath) {
-        readFile(filePath);
-    }
+    public Tables(String filePath) { readFile(filePath); }
 
-    // read each line of the file and create table objects
+    /* file loading */
     private void readFile(String path) {
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             String ln;
@@ -27,12 +26,10 @@ public class Tables {
                 }
             }
             tables.sort(Comparator.comparingInt(Table::getTableID));
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+        } catch (IOException ex) { ex.printStackTrace(); }
     }
 
-    // try to seat a party at a table under a server
+    /* seating helpers */
     public boolean assignTable(int id, int guests, Server s) {
         Table t = getTable(id);
         if (t == null) return false;
@@ -42,68 +39,58 @@ public class Tables {
         return true;
     }
 
-    // add items to a table's current order
     public void addItemsOrderToTable(int id, List<Item> order) {
         Table t = getTable(id);
-        if (t != null && t.isOccupied()) {
-            t.addItems(order);
-        }
+        if (t != null && t.isOccupied()) t.addItems(order);
     }
 
-    // remove a specific item from a table
     public boolean removeItemFromTable(int id, Item i) {
         Table t = getTable(id);
         return t != null && t.removeItem(i);
     }
 
-    // clear a table and free it up
     public void closeTable(int id) {
         Table t = getTable(id);
-        if (t != null) {
-            t.close();
-        }
+        if (t != null) t.close();
     }
 
-    // find a table by its id
+    /* query helpers */
     public Table getTable(int id) {
-        for (Table t : tables) {
+        for (Table t : tables)
             if (t.getTableID() == id) return t;
-        }
         return null;
     }
 
-    // get basic info for all tables
     public List<TableInfo> getTablesInfo() {
         List<TableInfo> out = new ArrayList<>();
-        for (Table t : tables) {
+        for (Table t : tables)
             out.add(new TableInfo(t.getTableID(), t.getCapacity(), t.getNumSeated()));
-        }
         return out;
     }
 
-    // get info for tables that can seat the given party
     public List<TableInfo> getAvailable(int guests) {
         List<TableInfo> out = new ArrayList<>();
-        for (Table t : tables) {
-            if (t.canSeat(guests) >= 0) {
+        for (Table t : tables)
+            if (t.canSeat(guests) >= 0)
                 out.add(new TableInfo(t.getTableID(), t.getCapacity(), t.getNumSeated()));
-            }
-        }
         return out;
     }
 
-    // list all currently occupied tables
     public List<Table> getOccupiedTables() {
         List<Table> out = new ArrayList<>();
-        for (Table t : tables) {
+        for (Table t : tables)
             if (t.isOccupied()) out.add(t);
-        }
         return out;
     }
 
-    // get the bill snapshot for a table
     public Bill getBillTable(int id) {
         Table t = getTable(id);
         return (t != null) ? t.getBill() : null;
+    }
+
+    /* new: read-only access to *all* tables */
+    public List<Table> getAllTables() {
+        /* unmodifiable so callers can’t mutate internal list */
+        return Collections.unmodifiableList(tables);
     }
 }
