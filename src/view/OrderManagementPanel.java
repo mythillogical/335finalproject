@@ -312,200 +312,193 @@ public class OrderManagementPanel extends JPanel {
 import model.*;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
-/* screen to seat / close tables and add items + mods */
+/**
+ * Dashboard showing Available Tables / In Progress / Recently Closed.
+ * Uses card-style panels that open the appropriate dialogs.
+ */
 public class OrderManagementPanel extends JPanel
-        implements RestaurantModel.ModelListener { // hook into model events
+        implements RestaurantModel.ModelListener {
 
-    private final RestaurantController controller;
+    /* mvc handles */
+    private final RestaurantController ctrl;
 
-    /* selectors & fields */
-    private final JComboBox<Integer> tableBox  = new JComboBox<>();
-    private final JTextField         guestsTxt = new JTextField(4);
-    private final JComboBox<String>  serverBox = new JComboBox<>();
-    private final JTextField         tipTxt    = new JTextField(4);
+    /* layout panels */
+    private final JPanel panAvail  = new JPanel(new FlowLayout(FlowLayout.LEFT,10,6));
+    private final JPanel panBusy   = new JPanel(new FlowLayout(FlowLayout.LEFT,10,6));
+    private final JPanel panClosed = new JPanel(new FlowLayout(FlowLayout.LEFT,10,6));
 
-    private final JComboBox<String>  menuBox   = new JComboBox<>();
-    private final JComboBox<String>  modBox    = new JComboBox<>();
+    public OrderManagementPanel(RestaurantController c){
+        ctrl = c;
 
-    private final DefaultTableModel  orderTm =
-            new DefaultTableModel(new String[]{"Item","Cost"},0);
-
-    public OrderManagementPanel(RestaurantController c) {
-        controller = c;
-        buildUI();
-        refreshTableList();
-        refreshServers();
-        refreshMods();          // populate with first item’s mods
-        refreshOrder();
-
-        /* register for live updates (e.g. new servers) */
-        controller.getModel().addListener(this);
-    }
-
-    /* ------------ model listener callback ------------ */
-    @Override public void modelChanged() {
-        refreshServers();                       // keep server combo in sync
-    }
-
-    /*layout*/
-    private void buildUI() {
         setLayout(new BorderLayout(10,10));
-        setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        setBorder(new EmptyBorder(10,10,10,10));
 
-        /* top bar */
-        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT,8,0));
-        top.add(new JLabel("Table:"));
-        tableBox.setRenderer(new TableComboRenderer());
-        tableBox.addActionListener(e -> refreshOrder());
-        top.add(tableBox);
+        JPanel rows = new JPanel(new GridLayout(3,1,0,10));
+        rows.add(wrap("Available Tables", panAvail));
+        rows.add(wrap("In Progress",      panBusy));
+        rows.add(wrap("Recently Closed",  panClosed));
+        add(rows, BorderLayout.CENTER);
 
-        top.add(new JLabel("Guests:"));
-        top.add(guestsTxt);
-
-        top.add(new JLabel("Server:"));
-        top.add(serverBox);
-
-        JButton seatBtn = new JButton("Seat Table");
-        seatBtn.addActionListener(e -> seatTable());
-        top.add(seatBtn);
-
-        top.add(new JLabel("Tip:"));
-        top.add(tipTxt);
-
-        JButton closeBtn = new JButton("Close Table");
-        closeBtn.addActionListener(e -> closeTable());
-        top.add(closeBtn);
-        add(top, BorderLayout.NORTH);
-
-        /* order list */
-        add(new JScrollPane(new JTable(orderTm)), BorderLayout.CENTER);
-
-        /* bottom add bar */
-        JPanel bot = new JPanel(new FlowLayout(FlowLayout.LEFT,8,0));
-        bot.add(new JLabel("Menu Item:"));
-        menuBox.addActionListener(e -> refreshMods());
-        bot.add(menuBox);
-
-        bot.add(new JLabel("Mod:"));
-        bot.add(modBox);
-
-        JButton addBtn = new JButton("Add to Order");
-        addBtn.addActionListener(e -> addItem());
-        bot.add(addBtn);
-        add(bot, BorderLayout.SOUTH);
+        refreshTablesPanels();
+        ctrl.getModel().addListener(this);
     }
 
-    /*refresh helpers*/
-    private void refreshTableList() {
-        tableBox.removeAllItems();
-        controller.getModel().getTables().getTablesInfo()
-                .forEach(t -> tableBox.addItem(t.getId()));
-        if(tableBox.getItemCount()>0) tableBox.setSelectedIndex(0);
+    @Override public void modelChanged(){ refreshTablesPanels(); }
 
-        if(menuBox.getItemCount()==0)
-            controller.getModel().getMenu().getAllItems()
-                    .forEach(i -> menuBox.addItem(i.getName()));
-    }
+    private void refreshTablesPanels(){
+        panAvail .removeAll();
+        panBusy  .removeAll();
+        panClosed.removeAll();
 
-    /* called from modelChanged + constructor */
-    void refreshServers() {
-        String prev = (String) serverBox.getSelectedItem();
-        serverBox.removeAllItems();
-        controller.getModel().getServers().values()
-                .forEach(s -> serverBox.addItem(s.getName()));
-        if(prev != null) serverBox.setSelectedItem(prev);
-        if(serverBox.getItemCount()>0 && serverBox.getSelectedIndex()<0)
-            serverBox.setSelectedIndex(0);
-    }
+        Tables tables = ctrl.getModel().getTables();
 
-    /* rebuild mod selector based on chosen base item */
-    private void refreshMods() {
-        modBox.removeAllItems();
-        String sel = (String) menuBox.getSelectedItem();
-        Item base = controller.getModel().getMenu().getAllItems().stream()
-                .filter(i -> i.getName().equals(sel)).findFirst().orElse(null);
-        if(base==null) return;
-        modBox.addItem("None");                       // default
-        for(Modification m: base.getModifications())
-            modBox.addItem(m.getDescription());
-    }
-
-    /* rebuild ticket table for currently selected table */
-    private void refreshOrder() {
-        orderTm.setRowCount(0);
-        Integer id = (Integer) tableBox.getSelectedItem();
-        if(id==null) return;
-        Table t = controller.getModel().getTables().getTable(id);
-        if(t==null||!t.isOccupied()) return;
-        for(Item i: t.getItems())
-            orderTm.addRow(new Object[]{i.getName(),String.format("$%.2f",i.getTotalCost())});
-    }
-
-    /*actions*/
-    private void seatTable() {
-        try {
-            int guests = Integer.parseInt(guestsTxt.getText().trim());
-            int id     = (Integer) tableBox.getSelectedItem();
-            String srv = (String) serverBox.getSelectedItem();
-            if(srv==null) { warn("select a server"); return; }
-            if(controller.handleAssignTable(id,guests,srv)){
-                info("table "+id+" seated");
-                refreshOrder(); tableBox.repaint();
-            }
-        } catch(NumberFormatException ex){ error("guests must be a number"); }
-    }
-
-    private void closeTable() {
-        try{
-            double tip = Double.parseDouble(tipTxt.getText().trim());
-            int id = (Integer) tableBox.getSelectedItem();
-            controller.handleCloseTable(id,tip);
-            info("table "+id+" closed");
-            refreshOrder(); tableBox.repaint();
-        } catch(NumberFormatException ex){ error("tip must be a number"); }
-    }
-
-    private void addItem() {
-        int id = (Integer) tableBox.getSelectedItem();
-        Table t = controller.getModel().getTables().getTable(id);
-        if(t==null||!t.isOccupied()){ warn("seat table first"); return; }
-
-        String baseName = (String) menuBox.getSelectedItem();
-        Item base = controller.getModel().getMenu().getAllItems().stream()
-                .filter(i -> i.getName().equals(baseName)).findFirst().orElse(null);
-        if(base==null) return;
-
-        Item fresh = new Item(base);                // clone to attach chosen mod
-        String modDesc = (String) modBox.getSelectedItem();
-        if(modDesc!=null && !modDesc.equals("None")){
-            base.getModifications().stream()
-                    .filter(m -> m.getDescription().equals(modDesc))
-                    .findFirst().ifPresent(fresh::addModification);
+        /* available (NOT occupied) */
+        for (TableInfo info : tables.getAvailable(1)){           // guests arg unused
+            Table t = tables.getTable(info.getId());
+            if(t!=null && !t.isOccupied())
+                panAvail.add(cardForAvailable(t));
         }
-        controller.handleAddOrder(id,new ArrayList<>(List.of(fresh)));
-        refreshOrder();
+
+        /* busy (occupied) */
+        for (Table t : tables.getOccupiedTables())
+            panBusy.add(cardForBusy(t));
+
+        /* closed bills */
+        for (Bill b : ctrl.getModel().getClosedTables())
+            panClosed.add(cardForClosed(b));
+
+        revalidate(); repaint();
     }
 
-    /*utilities*/
-    private void warn (String m){ JOptionPane.showMessageDialog(this,m,"Warning",JOptionPane.WARNING_MESSAGE);}
-    private void info (String m){ JOptionPane.showMessageDialog(this,m,"Info",   JOptionPane.INFORMATION_MESSAGE);}
-    private void error(String m){ JOptionPane.showMessageDialog(this,m,"Error",  JOptionPane.ERROR_MESSAGE);}
+    /*card builders */
 
-    /* colour tables green/ red in combo */
-    private class TableComboRenderer extends DefaultListCellRenderer{
-        @Override public Component getListCellRendererComponent(JList<?> list,
-                                                                Object value,int idx,boolean sel,boolean foc){
-            JLabel l=(JLabel)super.getListCellRendererComponent(list,value,idx,sel,foc);
-            if(value instanceof Integer id){
-                Table t=controller.getModel().getTables().getTable(id);
-                l.setForeground((t!=null&&t.isOccupied())?new Color(170,30,30):new Color(0,128,0));
-            }
-            return l;
-        }
+    private JPanel cardForAvailable(Table t){
+        JPanel card = makeCard(new Color(220,255,220));
+        card.add(label(t), BorderLayout.CENTER);
+
+        card.addMouseListener(new MouseAdapter(){
+            @Override public void mouseClicked(MouseEvent e){ seatDialog(t); }
+        });
+        return card;
     }
+
+    private JPanel cardForBusy(Table t){
+        JPanel card = makeCard(new Color(255,255,220));
+        card.add(label(t), BorderLayout.NORTH);
+        card.add(new JLabel("Server: "+t.getServer().getName()), BorderLayout.CENTER);
+        card.add(new JLabel("Guests: "+t.getNumSeated()),         BorderLayout.SOUTH);
+
+        card.addMouseListener(new MouseAdapter(){
+            @Override public void mouseClicked(MouseEvent e){ chooseBusyAction(t); }
+        });
+        return card;
+    }
+
+    private JPanel cardForClosed(Bill b){
+        JPanel card = makeCard(new Color(255,220,220));
+        card.add(new JLabel("<html><b>Table "
+                + b.getServer().getName()+"</b></html>"), BorderLayout.NORTH);
+        card.add(new JLabel("Total $" + String.format("%.2f", b.getTotalCost())),
+                BorderLayout.CENTER);
+        return card;
+    }
+
+    /* dialog helpers */
+
+    private void chooseBusyAction(Table t){
+        String[] ops = {"Modify order","Process payment"};
+        int ch = JOptionPane.showOptionDialog(this,
+                "Table "+t.getTableID()+": choose action",
+                "Table Options",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null, ops, ops[0]);
+
+        if(ch==0) openOrderWindow(t);
+        else if(ch==1) openPaymentWindow(t);
+    }
+
+    private void openOrderWindow(Table t){
+        new OrderProcessingWindow(ctrl, t.getTableID(), this).setVisible(true);
+    }
+
+    private void openPaymentWindow(Table t){
+        Bill b = ctrl.getModel().getTables().getBillTable(t.getTableID());
+        if(b==null) return;
+        new PaymentWindow(ctrl, b, t.getTableID(), this).setVisible(true);
+    }
+
+    /* seat-table dialog */
+    private void seatDialog(Table t){
+
+        /* (Window,String,ModalityType) */
+        JDialog dlg = new JDialog(
+                SwingUtilities.getWindowAncestor(this),
+                "Seat table " + t.getTableID(),
+                Dialog.ModalityType.APPLICATION_MODAL);
+
+        dlg.setLayout(new BorderLayout(10,10));
+        dlg.setSize(320,190);
+        dlg.setLocationRelativeTo(this);
+
+        JPanel form = new JPanel(new GridLayout(3,2,8,8));
+        form.setBorder(new EmptyBorder(10,10,10,10));
+
+        form.add(new JLabel("Server:"));
+        JComboBox<String> srvBox = new JComboBox<>();
+        ctrl.getModel().getServers().values()
+                .forEach(s -> srvBox.addItem(s.getName()));
+        form.add(srvBox);
+
+        form.add(new JLabel("Guests:"));
+        JSpinner spn = new JSpinner(
+                new SpinnerNumberModel(1,1,t.getCapacity(),1));
+        form.add(spn);
+
+        form.add(new JLabel("Capacity:"));
+        form.add(new JLabel(""+t.getCapacity()));
+
+        dlg.add(form, BorderLayout.CENTER);
+
+        JButton ok = new JButton("Seat");
+        ok.addActionListener(e -> {
+            String srv = (String)srvBox.getSelectedItem();
+            int guests = (Integer)spn.getValue();
+            if(ctrl.handleAssignTable(t.getTableID(), guests, srv))
+                dlg.dispose();
+        });
+        dlg.add(ok, BorderLayout.SOUTH);
+        dlg.setVisible(true);
+    }
+
+    /* helpers */
+
+    private static JPanel makeCard(Color bg){
+        JPanel p = new JPanel(new BorderLayout());
+        p.setPreferredSize(new Dimension(170,80));
+        p.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.GRAY),
+                new EmptyBorder(6,6,6,6)));
+        p.setBackground(bg);
+        return p;
+    }
+    private static JLabel label(Table t){
+        return new JLabel("<html><b>Table "+t.getTableID()+"</b></html>",
+                SwingConstants.CENTER);
+    }
+    private static JPanel wrap(String title, JPanel body){
+        JPanel w = new JPanel(new BorderLayout());
+        w.setBorder(BorderFactory.createTitledBorder(title));
+        w.add(new JScrollPane(body));
+        return w;
+    }
+
+    /* external refresh from children */
+    public void refresh(){ refreshTablesPanels(); }
+
 }

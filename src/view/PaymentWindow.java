@@ -1,186 +1,116 @@
 package view;
 
-//PaymentWindow.java
+import model.*;
+
 import javax.swing.*;
-
-import model.Bill;
-import model.Item;
-import model.RestaurantController;
-
 import java.awt.*;
 
-public class PaymentWindow extends JFrame {
-	OrderManagementPanel parent;
-	private Bill bill;
-	private RestaurantController controller;
-	private JRadioButton splitEvenlyOption;
-	private JRadioButton splitByGuestOption;
-	private JLabel subtotalLabel;
-	private JLabel taxLabel;
-	private JLabel totalLabel;
-	private JTextField tipAmountField;
-	private JLabel tipPercentLabel;
-	private JLabel finalTotalLabel;
+/* modal dialog for paying and closing a table */
+public class PaymentWindow extends JDialog {
 
-	private static final double TAX_RATE = 0.08; // 8% tax
+    private final RestaurantController ctrl;
+    private final Bill bill; // immutable snapshot – used for display only
+    private final int  tableId;
+    private final OrderManagementPanel parent;
 
-	public PaymentWindow(OrderManagementPanel parent, RestaurantController controller, Bill bill) {
-		this.parent = parent;
-		this.controller = controller;
-		this.bill = bill;
+    /* ui bits we need to recalc totals */
+    private final JTextField tipFld = new JTextField("0.00", 6);
+    private final JLabel lblSub  = new JLabel("$0.00");
+    private final JLabel lblTax  = new JLabel("$0.00");
+    private final JLabel lblPerc = new JLabel("0%");
+    private final JLabel lblTot  = new JLabel("$0.00");
 
-		setTitle("Process Payment - Table " + bill.getTableNum());
-		setSize(400, 400);
-		setLocationRelativeTo(parent);
+    private static final double TAX_RATE = 0.08;
 
-		initializeUI();
-		updateTotals();
-	}
+    public PaymentWindow(RestaurantController ctrl,
+                         Bill bill,
+                         int tableId,
+                         OrderManagementPanel parent) {
 
-	private void initializeUI() {
-		JPanel mainPanel = new JPanel(new BorderLayout());
-		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        super((Frame) SwingUtilities.getWindowAncestor(parent),
+                "payment – table " + tableId, true);
 
-		// North Panel - Split options
-		JPanel northPanel = new JPanel(new GridLayout(3, 1));
-		northPanel.setBorder(BorderFactory.createTitledBorder("Payment Options"));
+        this.ctrl   = ctrl;
+        this.bill   = bill;
+        this.tableId = tableId;
+        this.parent  = parent;
 
-		JLabel splitLabel = new JLabel("How would you like to split the bill?");
-		northPanel.add(splitLabel);
+        buildUi();
+        recalc();
+        setSize(360, 390);
+        setLocationRelativeTo(parent);
+    }
 
-		splitEvenlyOption = new JRadioButton("Split evenly between all guests");
-		splitEvenlyOption.setSelected(true);
-		northPanel.add(splitEvenlyOption);
+    /* UI */
+    private void buildUi() {
+        setLayout(new BorderLayout(10, 10));
 
-		splitByGuestOption = new JRadioButton("Split by individual guest orders");
-		northPanel.add(splitByGuestOption);
+        /* bill fields */
+        JPanel form = new JPanel(new GridLayout(7, 2, 6, 6));
+        form.setBorder(BorderFactory.createTitledBorder("bill details"));
 
-		ButtonGroup splitGroup = new ButtonGroup();
-		splitGroup.add(splitEvenlyOption);
-		splitGroup.add(splitByGuestOption);
+        form.add(new JLabel("subtotal:"));
+        form.add(lblSub);
 
-		mainPanel.add(northPanel, BorderLayout.NORTH);
+        form.add(new JLabel("tax (8%):"));
+        form.add(lblTax);
 
-		// Center Panel - Bill details
-		JPanel centerPanel = new JPanel(new GridLayout(7, 2, 5, 5));
-		centerPanel.setBorder(BorderFactory.createTitledBorder("Bill Details"));
+        form.add(new JLabel("total:"));
+        form.add(lblTot);
 
-		centerPanel.add(new JLabel("Subtotal:"));
-		subtotalLabel = new JLabel("$0.00");
-		centerPanel.add(subtotalLabel);
+        form.add(new JLabel("tip amount:"));
+        form.add(tipFld);
 
-		centerPanel.add(new JLabel("Tax (" + (TAX_RATE * 100) + "%):"));
-		taxLabel = new JLabel("$0.00");
-		centerPanel.add(taxLabel);
+        form.add(new JLabel("tip %:"));
+        form.add(lblPerc);
 
-		centerPanel.add(new JLabel("Total:"));
-		totalLabel = new JLabel("$0.00");
-		centerPanel.add(totalLabel);
+        add(form, BorderLayout.CENTER);
 
-		centerPanel.add(new JLabel("Tip Amount:"));
-		tipAmountField = new JTextField("0.00");
-		tipAmountField.addActionListener(e -> updateTipPercentage());
-		centerPanel.add(tipAmountField);
+        /* buttons */
+        JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton btnPay    = new JButton("process payment");
+        JButton btnCancel = new JButton("cancel");
+        south.add(btnCancel);
+        south.add(btnPay);
+        add(south, BorderLayout.SOUTH);
 
-		centerPanel.add(new JLabel("Tip Percentage:"));
-		tipPercentLabel = new JLabel("0%");
-		centerPanel.add(tipPercentLabel);
+        /* listeners */
+        tipFld   .addActionListener(e -> recalc());
+        btnCancel.addActionListener(e -> dispose());
+        btnPay   .addActionListener(e -> doPay());
+    }
 
-		centerPanel.add(new JLabel("Final Total:"));
-		finalTotalLabel = new JLabel("$0.00");
-		centerPanel.add(finalTotalLabel);
+    /* helpers */
+    private void recalc() {
+        try {
+            double sub = bill.getTotalCost();
+            double tax = sub * TAX_RATE;
+            double tip = Double.parseDouble(tipFld.getText());
 
-		mainPanel.add(centerPanel, BorderLayout.CENTER);
+            lblSub .setText(String.format("$%.2f", sub));
+            lblTax .setText(String.format("$%.2f", tax));
+            lblTot .setText(String.format("$%.2f", sub + tax + tip));
+            lblPerc.setText(String.format("%.1f%%", sub == 0 ? 0 : (tip / sub * 100)));
+        } catch (NumberFormatException ex) {
+            lblPerc.setText("err");
+        }
+    }
 
-		// South Panel - Payment actions
-		JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    private void doPay() {
+        try {
+            double tip = Double.parseDouble(tipFld.getText());
+            if (tip < 0) throw new NumberFormatException();
 
-		JButton processButton = new JButton("Process Payment");
-		processButton.addActionListener(e -> processPayment());
-		southPanel.add(processButton);
+            /* record payment – the model / controller will create a new
+               Bill snapshot that includes the tip */
+            ctrl.handleCloseTable(tableId, tip);
 
-		JButton cancelButton = new JButton("Cancel");
-		cancelButton.addActionListener(e -> dispose());
-		southPanel.add(cancelButton);
-
-		mainPanel.add(southPanel, BorderLayout.SOUTH);
-
-		add(mainPanel);
-	}
-
-	private void updateTotals() {
-		double subtotal = bill.getTotalCost();
-		double tax = subtotal * TAX_RATE;
-		double total = subtotal + tax;
-
-		subtotalLabel.setText("$" + String.format("%.2f", subtotal));
-		taxLabel.setText("$" + String.format("%.2f", tax));
-		totalLabel.setText("$" + String.format("%.2f", total));
-
-		updateTipPercentage();
-	}
-
-	private void updateTipPercentage() {
-		try {
-			double subtotal = bill.getTotalCost();
-			double tipAmount = Double.parseDouble(tipAmountField.getText());
-			double tipPercentage = (subtotal > 0) ? (tipAmount / subtotal) * 100 : 0;
-
-			tipPercentLabel.setText(String.format("%.1f%%", tipPercentage));
-
-			double tax = subtotal * TAX_RATE;
-			finalTotalLabel.setText("$" + String.format("%.2f", subtotal + tax + tipAmount));
-
-		} catch (NumberFormatException e) {
-			tipPercentLabel.setText("Invalid");
-		}
-	}
-
-	private void processPayment() {
-	    try {
-	        double tipAmount = Double.parseDouble(tipAmountField.getText());
-
-	        if (tipAmount < 0) {
-	            JOptionPane.showMessageDialog(this, "Tip amount cannot be negative.");
-	            return;
-	        }
-	        
-	        bill.addTips(tipAmount);
-
-	        if (splitByGuestOption.isSelected()) {
-	            // Show per-guest breakdown
-	            StringBuilder breakdown = new StringBuilder("Payment by guest:\n\n");
-
-	            // Calculate costs
-	            double subtotal = bill.getTotalCost();
-	            double tax = subtotal * TAX_RATE;
-	            int numPeople = bill.getPeople();
-	            
-	            // Split evenly among all guests
-	            double subtotalPerGuest = subtotal / numPeople;
-	            double taxPerGuest = tax / numPeople;
-	            double tipPerGuest = tipAmount / numPeople;
-	            double totalPerGuest = subtotalPerGuest + taxPerGuest + tipPerGuest;
-
-	            // Show breakdown for each guest
-	            for (int i = 1; i <= numPeople; i++) {
-	                breakdown.append("Guest ").append(i).append(":\n");
-	                breakdown.append(" Subtotal: $").append(String.format("%.2f", subtotalPerGuest)).append("\n");
-	                breakdown.append(" Tax: $").append(String.format("%.2f", taxPerGuest)).append("\n");
-	                breakdown.append(" Tip: $").append(String.format("%.2f", tipPerGuest)).append("\n");
-	                breakdown.append(" Total: $").append(String.format("%.2f", totalPerGuest)).append("\n\n");
-	            }
-
-	            JOptionPane.showMessageDialog(this, breakdown.toString(), "Payment Breakdown",
-	                    JOptionPane.INFORMATION_MESSAGE);
-	        }
-
-	        // Close this dialog
-	        bill.setPaid(true);
-	        dispose();
-
-	    } catch (NumberFormatException e) {
-	        JOptionPane.showMessageDialog(this, "Please enter a valid tip amount.");
-	    }
-	}
+            parent.refresh();          // update dashboard
+            dispose();
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "please enter a valid non-negative tip amount",
+                    "input error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 }

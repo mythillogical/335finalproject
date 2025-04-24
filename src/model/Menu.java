@@ -15,8 +15,8 @@ import java.util.Map;
 public class Menu {
 <<<<<<< Updated upstream
 
-	private final Map<String,List<Item>> map = new HashMap<>();
-	private final List<Item> all = new ArrayList<>();
+	private Map<String,List<Item>> map = new HashMap<>();
+	private List<Item> all = new ArrayList<>();
 
 	public Menu(String csv){ read(csv); }
 =======

@@ -1,89 +1,69 @@
 package model;
 
+import view.RestaurantView;
+
 import java.util.ArrayList;
-<<<<<<< Updated upstream
-import java.util.HashMap;
-//import java.util.Map;
 import java.util.List;
-import java.util.Map;
-=======
->>>>>>> Stashed changes
 
-
+/**
+ * glue between model and (multiple) views
+ * – core behaviour unchanged; a few convenience
+ *   helpers were added for the new gui panels
+ */
 public class RestaurantController {
-    private RestaurantModel model;
 
-    public RestaurantController(RestaurantModel model) {
-        this.model = model;
-    }
-    
-    public void handleAddServer(String name) {
-    	model.addServer(name);
-    }
-    
-    public boolean handleRemoveServer(String name) {
-    	return model.removeServer(name);
-    }
-    
-    public boolean handleAssignTable(int numTable, int numPeople, String serverName) {
-    	return model.assignTableToServer(numTable, numPeople, serverName);
-    }
-    
-    public void handleAddOrder(int numTable, ArrayList<Item> items) {
-    	model.addOrderToTable(numTable, items);
-    }
-    
-    public void handleCloseTable(int tableNumber, double tip) {
-    	model.closeTable(tableNumber, tip);
-    }
-    
-    public boolean checkAtiveServer(String serverName) {
-    	return model.checkForServerTable(serverName);
-    }
-    
-    public RestaurantModel getModel() {
-    	return model;
-    }
-    
-    public ArrayList<Table> getAvalibleTables() {
-    	return model.getAvalbleTables();
-    }
-    
-    public List<Map.Entry<String, Integer>> getSalesByItemSorted() {
-        HashMap<String, Integer> salesItem = new HashMap<>();
-        ArrayList<Bill> orders = model.getClosedTables();
+    /* mvc handles */
+    private final RestaurantModel model;
+    private final RestaurantView  view;
 
-        // Count items sold
-        for (Bill order : orders) {
-            for (Item item : order.getItems()) {
-                String itemName = item.getName();
-                salesItem.put(itemName, salesItem.getOrDefault(itemName, 0) + 1);
-            }
-        }
-
-        // Convert to list and sort by item count (ascending)
-        List<Map.Entry<String, Integer>> sortedList = new ArrayList<>(salesItem.entrySet());
-        sortedList.sort(Map.Entry.comparingByValue()); // .reversed() for descending
-
-        return sortedList;
+    public RestaurantController(RestaurantModel m, RestaurantView v) {
+        model = m;
+        view  = v;
     }
-    
-    public List<Map.Entry<String, Double>> getRevenueByItem() {
-    	HashMap<String, Double> salesItem = new HashMap<>();
-        ArrayList<Bill> orders = model.getClosedTables();
 
-        // Count items sold
-        for (Bill order : orders) {
-            for (Item item : order.getItems()) {
-                String itemName = item.getName();
-                double price = item.getCost();
-                salesItem.put(itemName, salesItem.getOrDefault(itemName, 0.0) + price);
-            }
-        }
+    /* server ops */
+    public void handleAddServer(String name)            { model.addServer(name); }
+    public boolean handleRemoveServer(String name)      { return model.removeServer(name); }
 
-        List<Map.Entry<String, Double>> sortedList = new ArrayList<>(salesItem.entrySet());
-        sortedList.sort(Map.Entry.comparingByValue());
-
-        return sortedList;
+    /* seating ops */
+    public boolean handleAssignTable(int id, int guests, String server) {
+        boolean ok = model.assignTableToServer(id, guests, server);
+        if (!ok)  view.displayError("Could not assign table (check capacity / availability)");
+        else      view.displayTables(model.getTables().getTablesInfo());
+        return ok;
     }
+
+    public void handleCloseTable(int id, double tip) {
+        model.closeTable(id, tip);
+        view.displayTables(model.getTables().getTablesInfo());
+    }
+
+    /* order ops */
+    public void handleAddOrder(int id, ArrayList<Item> items) {
+        model.addOrderToTable(id, items);
+    }
+
+    /* helpers for gui panels */
+
+    /** does this server currently own at least one occupied table? */
+    public boolean checkActiveServer(String srv) {
+        return model.getTables().getOccupiedTables()
+                .stream()
+                .anyMatch(t -> t.getServer() != null &&
+                        t.getServer().getName().equals(srv));
+    }
+
+    /** convenience: list of *non*-occupied tables, already sorted by id */
+    public List<Table> getAvailableTables() {
+        List<Table> out = new ArrayList<>();
+        model.getTables().getTablesInfo().forEach(ti -> {
+            Table t = model.getTables().getTable(ti.getId());
+            if (t != null && !t.isOccupied()) out.add(t);
+        });
+        out.sort((a, b) -> Integer.compare(a.getTableID(), b.getTableID()));
+        return out;
+    }
+
+    /* expose model for direct read-only access where necessary */
+    public RestaurantModel getModel() { return model; }
 }

@@ -1,270 +1,200 @@
 package view;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
 import model.*;
-import model.Menu;
 
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * Per-table order window – lets a server add / remove items for the live ticket.
+ */
 public class OrderProcessingWindow extends JFrame {
-    private RestaurantController controller;
-    private int tableNumber;
-    private OrderManagementPanel parentPanel;
-    private JTabbedPane categoryTabs;
-    private JTextArea orderSummaryArea;
-    private ArrayList<Item> currentOrderItems;
-    private ArrayList<Item> existingOrderItems;
-    
-    public OrderProcessingWindow(RestaurantController controller, int tableNumber, OrderManagementPanel parentPanel) {
-        this.controller = controller;
-        this.tableNumber = tableNumber;
-        this.parentPanel = parentPanel;
-        this.currentOrderItems = new ArrayList<>();
-        this.existingOrderItems = new ArrayList<>();
-        
-        // Get existing items if any
-        Bill bill = controller.getModel().getBillTable(tableNumber);
-        if (bill != null) {
-            existingOrderItems.addAll(bill.getItems());
-        }
-        
-        setTitle("Table " + tableNumber + " - Order Processing");
+
+    /* MVC hooks */
+    private final RestaurantController ctrl;
+    private final int  tableId;
+    private final OrderManagementPanel parent;
+
+    /* state */
+    private final List<Item> existing = new ArrayList<>();   // items already on the ticket
+    private final List<Item> newItems = new ArrayList<>();   // items added in this session
+
+    /* ui bits we need to mutate */
+    private final JTextArea txtSummary = new JTextArea();
+
+    public OrderProcessingWindow(RestaurantController c,
+                                 int tableId,
+                                 OrderManagementPanel parent) {
+
+        this.ctrl    = c;
+        this.tableId = tableId;
+        this.parent  = parent;
+
+        Bill snap = ctrl.getModel().getTables().getBillTable(tableId);
+        if (snap != null) existing.addAll(snap.getItems());
+
+        setTitle("table " + tableId + " – order");
         setSize(900, 600);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        
-        initializeUI();
-        updateOrderSummary();
+        setLocationRelativeTo(parent);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+        buildUi();
+        refreshSummary();
     }
-    
-    private void initializeUI() {
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        // Table and server info panel
-        JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 5));
-        Table table = controller.getModel().getTables().getTable(tableNumber);
-        
-        JLabel tableLabel = new JLabel("Table: " + tableNumber);
-        tableLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        
-        JLabel serverLabel = new JLabel("Server: " + (table.getServer() != null ? table.getServer().getName() : "None"));
-        serverLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        
-        JLabel guestsLabel = new JLabel("Guests: " + table.getNumPeople());
-        guestsLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        
-        infoPanel.add(tableLabel);
-        infoPanel.add(serverLabel);
-        infoPanel.add(guestsLabel);
-        
-        mainPanel.add(infoPanel, BorderLayout.NORTH);
-        
-        // Center split panel for menu and order
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setResizeWeight(0.7);
-        
-        // Menu panel with categories
-        JPanel menuPanel = new JPanel(new BorderLayout());
-        menuPanel.setBorder(BorderFactory.createTitledBorder("Menu Items"));
-        
-        categoryTabs = new JTabbedPane();
-        Menu menu = controller.getModel().getMenu();
-        
-        for (String category : menu.getCatigories()) {
-            JPanel categoryPanel = new JPanel(new GridLayout(0, 3, 8, 8));
-            categoryPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-            
-            for (Item item : menu.getItemsByCategory(category)) {
-                JButton itemButton = createMenuItemButton(item);
-                categoryPanel.add(itemButton);
+
+    private void buildUi() {
+
+        /* top info bar */
+        Table t = ctrl.getModel().getTables().getTable(tableId);
+
+        JPanel info = new JPanel(new FlowLayout(FlowLayout.LEFT, 18, 4));
+        info.add(new JLabel("server: " +
+                (t.getServer() != null ? t.getServer().getName() : "-")));
+        info.add(new JLabel("guests: " + t.getNumSeated()));
+        add(info, BorderLayout.NORTH);
+
+        /* split pane */
+        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        split.setResizeWeight(0.70);
+        add(split, BorderLayout.CENTER);
+
+        /* left: MENU TABS */
+        JTabbedPane tabs = new JTabbedPane();
+
+        model.Menu menu = ctrl.getModel().getMenu();   // fully-qualified to avoid AWT clash
+        List<String> cats = menu.getAllItems()
+                .stream()
+                .map(Item::getCategory)
+                .distinct()
+                .collect(Collectors.toList());
+
+        for (String cat : cats) {
+            JPanel grid = new JPanel(new GridLayout(0, 3, 8, 8));
+            grid.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+            for (Item it : menu.getAllItems()) {
+                if (it.getCategory().equals(cat))
+                    grid.add(makeItemButton(it));
             }
-            
-            JScrollPane scrollPane = new JScrollPane(categoryPanel);
-            scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-            categoryTabs.addTab(category, scrollPane);
+            JScrollPane sc = new JScrollPane(grid);
+            sc.getVerticalScrollBar().setUnitIncrement(16);
+            tabs.addTab(cat, sc);
         }
-        
-        menuPanel.add(categoryTabs, BorderLayout.CENTER);
-        splitPane.setLeftComponent(menuPanel);
-        
-        // Order summary panel
-        JPanel orderPanel = new JPanel(new BorderLayout(0, 10));
-        orderPanel.setBorder(BorderFactory.createTitledBorder("Current Order"));
-        
-        orderSummaryArea = new JTextArea();
-        orderSummaryArea.setEditable(false);
-        orderSummaryArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
-        JScrollPane orderScrollPane = new JScrollPane(orderSummaryArea);
-        orderPanel.add(orderScrollPane, BorderLayout.CENTER);
-        
-        // Order control buttons
-        JPanel orderButtonsPanel = new JPanel(new GridLayout(1, 3, 5, 0));
-        
-        JButton removeItemButton = new JButton("Remove Selected Item");
-        removeItemButton.addActionListener(e -> removeSelectedItem());
-        
-        JButton clearButton = new JButton("Clear New Items");
-        clearButton.addActionListener(e -> {
-            currentOrderItems.clear();
-            updateOrderSummary();
+
+        split.setLeftComponent(tabs);
+
+        /* right: ORDER SUMMARY */
+        JPanel order = new JPanel(new BorderLayout(0, 10));
+        order.setBorder(BorderFactory.createTitledBorder("current order"));
+
+        txtSummary.setEditable(false);
+        txtSummary.setFont(new Font("monospaced", Font.PLAIN, 14));
+        order.add(new JScrollPane(txtSummary), BorderLayout.CENTER);
+
+        /* buttons */
+        JPanel btns = new JPanel(new GridLayout(1, 3, 6, 0));
+        JButton btnRemove = new JButton("remove selected");
+        JButton btnClear  = new JButton("clear new");
+        JButton btnSend   = new JButton("submit order");
+        btns.add(btnRemove); btns.add(btnClear); btns.add(btnSend);
+        order.add(btns, BorderLayout.SOUTH);
+
+        split.setRightComponent(order);
+
+        /* listeners */
+        btnClear .addActionListener(e -> { newItems.clear(); refreshSummary(); });
+
+        btnRemove.addActionListener(e -> {
+            String sel = txtSummary.getSelectedText();
+            if (sel != null) removeByName(sel.trim());
         });
-        
-        JButton submitButton = new JButton("Submit Order");
-        submitButton.addActionListener(e -> submitOrder());
-        
-        orderButtonsPanel.add(removeItemButton);
-        orderButtonsPanel.add(clearButton);
-        orderButtonsPanel.add(submitButton);
-        
-        orderPanel.add(orderButtonsPanel, BorderLayout.SOUTH);
-        splitPane.setRightComponent(orderPanel);
-        
-        mainPanel.add(splitPane, BorderLayout.CENTER);
-        
-        // Bottom panel with close button
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton closeButton = new JButton("Close Window");
-        closeButton.addActionListener(e -> dispose());
-        bottomPanel.add(closeButton);
-        
-        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
-        
-        add(mainPanel);
+
+        btnSend.addActionListener(e -> submitOrder());
+
+        /* bottom close */
+        JButton close = new JButton("close");
+        close.addActionListener(e -> dispose());
+        add(close, BorderLayout.SOUTH);
     }
-    
-    private JButton createMenuItemButton(Item item) {
-        JButton button = new JButton();
-        button.setLayout(new BorderLayout());
-        
-        JLabel nameLabel = new JLabel(item.getName());
-        nameLabel.setFont(new Font("Arial", Font.BOLD, 12));
-        nameLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        
-        JLabel priceLabel = new JLabel("$" + String.format("%.2f", item.getCost()));
-        priceLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        
-        button.add(nameLabel, BorderLayout.CENTER);
-        button.add(priceLabel, BorderLayout.SOUTH);
-        
-        button.setPreferredSize(new Dimension(120, 60));
-        
-        button.addActionListener(e -> {
-            currentOrderItems.add(item);
-            updateOrderSummary();
+
+    /*helpers*/
+
+    private JButton makeItemButton(Item src) {
+        JButton b = new JButton("<html><center>" + src.getName() +
+                "<br>$" + String.format("%.2f", src.getCost()) + "</center></html>");
+        b.addActionListener(e -> {
+            newItems.add(src);
+            refreshSummary();
         });
-        
-        return button;
+        return b;
     }
-    
-    private void updateOrderSummary() {
+
+    private void refreshSummary() {
+
         StringBuilder sb = new StringBuilder();
-        double total = 0.0;
-        
-        // Show existing items first
-        if (!existingOrderItems.isEmpty()) {
+        double total = 0;
+
+        if (!existing.isEmpty()) {
             sb.append("EXISTING ITEMS:\n");
-            for (Item item : existingOrderItems) {
-                sb.append(String.format("%-30s $%.2f\n", item.getName(), item.getCost()));
-                total += item.getCost();
+            for (Item i : existing) {
+                sb.append(String.format("%-28s $%.2f%n", i.getName(), i.getCost()));
+                total += i.getCost();
             }
-            sb.append("\n");
+            sb.append('\n');
         }
-        
-        // Show new items
-        if (!currentOrderItems.isEmpty()) {
+
+        if (!newItems.isEmpty()) {
             sb.append("NEW ITEMS:\n");
-            for (Item item : currentOrderItems) {
-                sb.append(String.format("%-30s $%.2f\n", item.getName(), item.getCost()));
-                total += item.getCost();
+            for (Item i : newItems) {
+                sb.append(String.format("%-28s $%.2f%n", i.getName(), i.getCost()));
+                total += i.getCost();
             }
-            sb.append("\n");
+            sb.append('\n');
         }
-        
-        // Show total
-        sb.append(String.format("\nTOTAL: $%.2f", total));
-        
-        orderSummaryArea.setText(sb.toString());
+
+        sb.append("\nTOTAL: $").append(String.format("%.2f", total));
+        txtSummary.setText(sb.toString());
     }
-    
-    private void removeSelectedItem() {
-        // Get selected text and try to match with an item
-        String selectedText = orderSummaryArea.getSelectedText();
-        if (selectedText == null || selectedText.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Please select an item in the order summary to remove.",
-                "No Selection", JOptionPane.INFORMATION_MESSAGE);
+
+    private void submitOrder() {
+        if (newItems.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "no new items to submit");
             return;
         }
-        
-        // Try to find the item name in the selection
-        String itemName = null;
-        for (Item item : currentOrderItems) {
-            if (selectedText.contains(item.getName())) {
-                itemName = item.getName();
-                break;
-            }
-        }
-        
-        if (itemName != null) {
-            // Find and remove the first matching item
-            for (int i = 0; i < currentOrderItems.size(); i++) {
-                if (currentOrderItems.get(i).getName().equals(itemName)) {
-                    currentOrderItems.remove(i);
-                    updateOrderSummary();
-                    return;
-                }
-            }
-        }
-        
-        // Also check existing items for removal
-        for (Item item : existingOrderItems) {
-            if (selectedText.contains(item.getName())) {
-                if (controller.getModel().removeItemFromTable(tableNumber, item)) {
-                    existingOrderItems.remove(item);
-                    updateOrderSummary();
-                    return;
-                } else {
-                    JOptionPane.showMessageDialog(this, 
-                        "Could not remove existing item. Please try again.",
-                        "Removal Failed", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
-        }
-        
-        JOptionPane.showMessageDialog(this, 
-            "Could not identify the selected item. Please select an item name.",
-            "Selection Error", JOptionPane.WARNING_MESSAGE);
+        ctrl.handleAddOrder(tableId, new ArrayList<>(newItems));
+        newItems.clear();
+
+        /* refresh local copy of existing items */
+        Bill snap = ctrl.getModel().getTables().getBillTable(tableId);
+        existing.clear();
+        if (snap != null) existing.addAll(snap.getItems());
+
+        refreshSummary();
+        parent.refresh();
+        JOptionPane.showMessageDialog(this, "order updated");
     }
-    
-    private void submitOrder() {
-        if (!currentOrderItems.isEmpty()) {
-            // Add new items to the table
-            controller.handleAddOrder(tableNumber, new ArrayList<>(currentOrderItems));
-            
-            JOptionPane.showMessageDialog(this, 
-                "Order submitted successfully!",
-                "Order Confirmation", JOptionPane.INFORMATION_MESSAGE);
-            
-            // Clear current items and refresh
-            currentOrderItems.clear();
-            
-            // Refresh existing items
-            Bill bill = controller.getModel().getBillTable(tableNumber);
-            if (bill != null) {
-                existingOrderItems.clear();
-                existingOrderItems.addAll(bill.getItems());
+
+    /** try to remove by name – new items first, then ask Tables to remove */
+    private void removeByName(String name) {
+
+        if (newItems.removeIf(i -> i.getName().equals(name))) {
+            refreshSummary();
+            return;
+        }
+
+        for (Item i : existing) {
+            if (i.getName().equals(name)) {
+                boolean ok = ctrl.getModel().getTables().removeItemFromTable(tableId, i);
+                if (ok) {
+                    existing.remove(i);
+                    refreshSummary();
+                }
+                return;
             }
-            
-            updateOrderSummary();
-            parentPanel.refresh();
-        } else {
-            JOptionPane.showMessageDialog(this, 
-                "No new items to submit. Add items to the order first.",
-                "Empty Order", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 }
