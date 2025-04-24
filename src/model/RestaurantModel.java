@@ -1,78 +1,61 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.io.FileWriter;
+import java.util.*;
 
+/* central state holder with simple observer */
 public class RestaurantModel {
-	private Menu menu;
-	private Tables tables;
-	private HashMap<String, Server> servers;
-	private ArrayList<Bill> closedTables;
 
-	public RestaurantModel() {
-		this.tables = new Tables("tables.txt");
-		this.menu = new Menu("Menu.csv");
-		this.closedTables = new ArrayList<>();
-		this.servers = new HashMap<>();
+	public interface ModelListener{ void modelChanged(); }
+	private final List<ModelListener> listeners=new ArrayList<>();
+	private void fire(){ listeners.forEach(ModelListener::modelChanged); }
+	public void addListener(ModelListener l){ listeners.add(l); }
+	public void removeListener(ModelListener l){ listeners.remove(l); }
+
+	private final Menu   menu   = new Menu("Menu.csv");
+	private final Tables tables = new Tables("tables.txt");
+	private final Map<String,Server> servers=new HashMap<>();
+	private final List<Bill> closed=new ArrayList<>();
+
+	/* menu persistence */
+	public void addMenuItem(Item i){ menu.addItem(i); saveMenu(); fire(); }
+	public void removeMenuItem(Item i){ menu.removeItem(i); saveMenu(); fire(); }
+
+	private void saveMenu(){
+		try(FileWriter w=new FileWriter("Menu.csv")){
+			w.write("Category,Name,Cost,Mods\n");
+			for(Item it:menu.getAllItems()){
+				w.write(String.format("%s,%s,%.2f,%s\n",
+						it.getCategory(),it.getName(),it.getCost(),it.modsToCsv()));
+			}
+		}catch(Exception ignored){}
 	}
-	
-	public void addServer(String name) {
-		servers.put(name, new Server(name));
+
+	/* server ops */
+	public void addServer(String n){ servers.put(n,new Server(n)); fire(); }
+	public boolean removeServer(String n){
+		boolean ok=servers.remove(n)!=null; if(ok) fire(); return ok;
 	}
-	
-	public boolean removeServer(String name) {
-		return servers.remove(name) != null;
+
+	/* seating / orders */
+	public boolean assignTableToServer(int id,int g,String s){
+		boolean ok=tables.assignTable(id,g,servers.get(s)); if(ok) fire(); return ok;
 	}
-	
-	
-	public boolean assignTableToServer(int numTable, int numPeople ,String serverName) {
-		return tables.assignTable(numTable, numPeople, servers.get(serverName));
+	public void addOrderToTable(int id,ArrayList<Item> ord){
+		tables.addItemsOrderToTable(id,ord); fire();
 	}
-	
-	public void addOrderToTable(int numTable, ArrayList<Item> order) {
-		tables.addItemsOrderToTable(numTable, order);
-	}
-	
-	public boolean removeItemFromTable(int numTable, Item item) {
-		return tables.removeItemFromTable(numTable, item);
-	}
-	
-	public void closeTable(int numTable, double tip) {
-		Bill bill = tables.getBillTable(numTable);
-		tables.closeTable(numTable);
-		if (bill != null) {
-			this.closedTables.add(bill);
-			String serverName = bill.getServer().getName();
-			servers.get(serverName).addTips(tip);
+	public void closeTable(int id,double tip){
+		Bill b=tables.getBillTable(id); tables.closeTable(id);
+		if(b!=null){
+			Bill bt=new Bill(new ArrayList<>(b.getItems()),
+					b.getPeople(),b.getServer(),tip);
+			closed.add(bt); servers.get(bt.getServer().getName()).addTips(tip);
 		}
 	}
-	
-	public boolean checkForServerTable(String serverNmae) {
-		return tables.checkServerForActiveTable(serverNmae);
-	}
-	
-	public ArrayList<Table> getAvalbleTables() {
-		return tables.getNotOqubiedTable();
-	}
-	
-	public Bill getBillTable(int numTable) {
-		return tables.getBillTable(numTable);
-	}
-	
-	public Menu getMenu() {
-		return menu;
-	}
-	
-	public Tables getTables() {
-		return tables;
-	}
-	
-	public HashMap<String, Server> getServers(){
-		return servers;
-	}
-	
-	public ArrayList<Bill> getClosedTables() {
-		return this.closedTables;
-	}
 
+	/* getters */
+	public Menu           getMenu(){ return menu; }
+	public Tables         getTables(){ return tables; }
+	public Map<String,Server> getServers(){ return servers; }
+	public List<Bill>     getClosedTables(){ return closed; }
 }

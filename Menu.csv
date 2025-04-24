@@ -1,20 +1,20 @@
-Category,Name,Price,Modifications
-Entrees,Cheeseburger,8.99,No cheese:0.00;Add bacon:1.50;Gluten-free bun:1.00
-Entrees,Caesar Salad,7.49,No croutons:0.00;Extra dressing:0.75
-Entrees,Grilled Chicken Sandwich,9.25,No mayo:0.00;Add avocado:1.25;Whole wheat bun:0.50
-Entrees,Veggie Burger,8.75,Add cheese:0.75;No onions:0.00;Spicy sauce:0.50
-Entrees,Spaghetti Bolognese,10.50,Extra sauce:1.00;Gluten-free pasta:1.50;No parmesan:0.00
-Entrees,Fish Tacos,9.95,Add guacamole:1.25;No slaw:0.00;Extra lime:0.25
-Entrees,BBQ Ribs,12.99,Extra BBQ sauce:0.75;No pickles:0.00
-Drinks,Iced Tea,2.49,No ice:0.00;Add lemon:0.25
-Drinks,Lemonade,2.99,Less sugar:0.00;Add mint:0.50
-Drinks,Coffee,2.25,Add milk:0.25;Add vanilla shot:0.75;No sugar:0.00
+Category,Name,Cost,Mods
+Entrees,Cheeseburger,8.99,No cheese:0.0;Add bacon:1.5;Gluten-free bun:1.0
+Entrees,Caesar Salad,7.49,No croutons:0.0;Extra dressing:0.75
+Entrees,Grilled Chicken Sandwich,9.25,No mayo:0.0;Add avocado:1.25;Whole wheat bun:0.5
+Entrees,Veggie Burger,8.75,Add cheese:0.75;No onions:0.0;Spicy sauce:0.5
+Entrees,Spaghetti Bolognese,10.50,Extra sauce:1.0;Gluten-free pasta:1.5;No parmesan:0.0
+Entrees,Fish Tacos,9.95,Add guacamole:1.25;No slaw:0.0;Extra lime:0.25
+Entrees,BBQ Ribs,12.99,Extra BBQ sauce:0.75;No pickles:0.0
+Drinks,Iced Tea,2.49,No ice:0.0;Add lemon:0.25
+Drinks,Lemonade,2.99,Less sugar:0.0;Add mint:0.5
+Drinks,Coffee,2.25,Add milk:0.25;Add vanilla shot:0.75;No sugar:0.0
 Drinks,Sparkling Water,1.99,Add lime:0.25
-Drinks,Orange Juice,3.49,No pulp:0.00;Extra ice:0.00
-Drinks,Smoothie,4.95,Add protein:1.50;Add chia seeds:0.75
+Drinks,Orange Juice,3.49,No pulp:0.0;Extra ice:0.0
+Drinks,Smoothie,4.95,Add protein:1.5;Add chia seeds:0.75
 Desserts,Chocolate Cake,4.99,
-Desserts,Apple Pie,4.50,Add whipped cream:0.50;Warm it up:0.25
-Desserts,Vanilla Ice Cream,3.25,Add sprinkles:0.50;Add hot fudge:0.75
-Desserts,Brownie Sundae,5.75,No nuts:0.00;Extra ice cream:1.25
+Desserts,Apple Pie,4.50,Add whipped cream:0.5;Warm it up:0.25
+Desserts,Vanilla Ice Cream,3.25,Add sprinkles:0.5;Add hot fudge:0.75
+Desserts,Brownie Sundae,5.75,No nuts:0.0;Extra ice cream:1.25
 Desserts,Tiramisu,5.25,
-Desserts,Cheesecake,5.49,Add strawberries:0.75;Chocolate drizzle:0.50
+Desserts,Cheesecake,5.49,Add strawberries:0.75;Chocolate drizzle:0.5
