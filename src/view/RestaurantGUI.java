@@ -1,11 +1,11 @@
 package view;
 import javax.swing.*;
 import model.*;
-import model.Menu;
+//import model.Menu;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
-import java.util.List;
+//import java.util.*;
+//import java.util.List;
 public class RestaurantGUI extends JFrame {
     private RestaurantController controller;
     private JButton OrderManagButton; // this for order management button
@@ -15,6 +15,7 @@ public class RestaurantGUI extends JFrame {
     private JPanel mainPanel;
     private ServerManagementPanel serverManagementPanel;
     private OrderManagementPanel orderManagementPanel;
+    private SalesReportPanel salesReportPanel; // New panel for sales reports
     
     public RestaurantGUI() {
         // Initialize the model and controller
@@ -52,6 +53,9 @@ public class RestaurantGUI extends JFrame {
         
         // Initialize order management panel with controller
         orderManagementPanel = new OrderManagementPanel(controller);
+        
+        // Initialize sales report panel with controller
+        salesReportPanel = new SalesReportPanel(controller);
     }
     
     private void setupActionListeners() {
@@ -85,6 +89,22 @@ public class RestaurantGUI extends JFrame {
                 showMainPanel();
             }
         });
+        
+        // Add action listener for Sales Report button
+        salesRepoButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showSalesReportPanel();
+            }
+        });
+        
+        // Add action listener to the back button in sales report panel
+        salesReportPanel.getBackButton().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showMainPanel();
+            }
+        });
     }
     
     private void showServerManagementPanel() {
@@ -100,6 +120,15 @@ public class RestaurantGUI extends JFrame {
         orderManagementPanel.refresh(); // Refresh data before showing
         getContentPane().removeAll();
         getContentPane().add(orderManagementPanel);
+        getContentPane().revalidate();
+        getContentPane().repaint();
+    }
+    
+    private void showSalesReportPanel() {
+        // Remove current panel and add sales report panel
+        salesReportPanel.refresh(); // Refresh data before showing
+        getContentPane().removeAll();
+        getContentPane().add(salesReportPanel);
         getContentPane().revalidate();
         getContentPane().repaint();
     }

@@ -1,7 +1,10 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 //import java.util.Map;
+import java.util.List;
+import java.util.Map;
 
 /*
  * 
@@ -10,20 +13,14 @@ import java.util.ArrayList;
 +handleAddOrder(tableNumber: int, items: List~MenuItem~): void
 +handleCloseOrder(tableNumber: int, tip: double): void
 +handleShowSalesReport(): void
-+getSalesByItem(): Map~MenuItem, Integer~
-+getRevenueByItem(): Map~MenuItem, Double~
 +getTopTippedServer(): Server
-+sortSalesByFrequency(): List~MenuItem~
-+sortSalesByRevenue(): List~MenuItem~
 */
 
 public class RestaurantController {
     private RestaurantModel model;
-    //private RestaurantView view;
 
     public RestaurantController(RestaurantModel model) {
         this.model = model;
-        //this.view = view;
     }
     
     public void handleAddServer(String name) {
@@ -56,5 +53,43 @@ public class RestaurantController {
     
     public ArrayList<Table> getAvalibleTables() {
     	return model.getAvalbleTables();
+    }
+    
+    public List<Map.Entry<String, Integer>> getSalesByItemSorted() {
+        HashMap<String, Integer> salesItem = new HashMap<>();
+        ArrayList<Bill> orders = model.getClosedTables();
+
+        // Count items sold
+        for (Bill order : orders) {
+            for (Item item : order.getItems()) {
+                String itemName = item.getName();
+                salesItem.put(itemName, salesItem.getOrDefault(itemName, 0) + 1);
+            }
+        }
+
+        // Convert to list and sort by item count (ascending)
+        List<Map.Entry<String, Integer>> sortedList = new ArrayList<>(salesItem.entrySet());
+        sortedList.sort(Map.Entry.comparingByValue()); // .reversed() for descending
+
+        return sortedList;
+    }
+    
+    public List<Map.Entry<String, Double>> getRevenueByItem() {
+    	HashMap<String, Double> salesItem = new HashMap<>();
+        ArrayList<Bill> orders = model.getClosedTables();
+
+        // Count items sold
+        for (Bill order : orders) {
+            for (Item item : order.getItems()) {
+                String itemName = item.getName();
+                double price = item.getCost();
+                salesItem.put(itemName, salesItem.getOrDefault(itemName, 0.0) + price);
+            }
+        }
+
+        List<Map.Entry<String, Double>> sortedList = new ArrayList<>(salesItem.entrySet());
+        sortedList.sort(Map.Entry.comparingByValue());
+
+        return sortedList;
     }
 }
