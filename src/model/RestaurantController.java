@@ -46,6 +46,10 @@ public class RestaurantController {
     	model.closeTable(tableNumber, tip);
     }
     
+    public boolean checkAtiveServer(String serverName) {
+    	return model.checkForServerTable(serverName);
+    }
+    
     public RestaurantModel getModel() {
     	return model;
     }

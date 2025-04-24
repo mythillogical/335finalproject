@@ -132,6 +132,19 @@ public class Tables {
     	return true;
     }
     
+    // this method is to check the server has active table
+    public boolean checkServerForActiveTable(String serverName) {
+    	for (Table table : tables) {
+    		Server server = table.getServer();
+    		if (table.getServer() != null) {
+    			if (server.getName().equals(serverName)) {
+    				return true;
+    			}
+    		}
+    	}
+    	return false;
+    }
+    
     public ArrayList<Table> getTables() {
     	return tables;
     }

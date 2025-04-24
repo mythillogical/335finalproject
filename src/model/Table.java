@@ -16,6 +16,7 @@ public class Table {
 		this.capacity = capacity;
 		this.numSeated = 0;
 		this.isOccupied = false;
+		this.server = null;
 		this.items = new ArrayList<>();
 	}
 

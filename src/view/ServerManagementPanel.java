@@ -128,14 +128,19 @@ public class ServerManagementPanel extends JPanel {
     private void deleteServer() {
         Server selectedServer = serverList.getSelectedValue();
         if (selectedServer != null) {
-            int choice = JOptionPane.showConfirmDialog(this, 
-                    "Are you sure you want to delete this server?", "Confirm Deletion", 
-                    JOptionPane.YES_NO_OPTION);
-            
-            if (choice == JOptionPane.YES_OPTION) {
-                this.controler.handleRemoveServer(selectedServer.getName());
-                serverListModel.removeElement(selectedServer);
-                nameField.setText("");
+        	if (!this.controler.checkAtiveServer(selectedServer.getName())) {
+	            int choice = JOptionPane.showConfirmDialog(this, 
+	                    "Are you sure you want to delete this server?", "Confirm Deletion", 
+	                    JOptionPane.YES_NO_OPTION);
+	            
+	            if (choice == JOptionPane.YES_OPTION) {
+	                this.controler.handleRemoveServer(selectedServer.getName());
+	                serverListModel.removeElement(selectedServer);
+	                nameField.setText("");
+	            }
+        	} else {
+        		JOptionPane.showMessageDialog(this, 
+                        "This server has active table", "Selection Error", JOptionPane.ERROR_MESSAGE);
             }
         } else {
             JOptionPane.showMessageDialog(this, 

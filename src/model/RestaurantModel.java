@@ -47,6 +47,10 @@ public class RestaurantModel {
 		}
 	}
 	
+	public boolean checkForServerTable(String serverNmae) {
+		return tables.checkServerForActiveTable(serverNmae);
+	}
+	
 	public ArrayList<Table> getAvalbleTables() {
 		return tables.getNotOqubiedTable();
 	}
