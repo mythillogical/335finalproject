@@ -26,9 +26,17 @@ public class Tables {
                     tables.add(new Table(id, cap));
                 }
             }
+<<<<<<< Updated upstream
             tables.sort(Comparator.comparingInt(Table::getTableID));
         } catch (IOException ex) {
             ex.printStackTrace();
+=======
+            
+            Collections.sort(tables, Comparator.comparingInt(table -> table.getTableId()));
+        	
+        } catch (IOException e) {
+            e.printStackTrace();
+>>>>>>> Stashed changes
         }
     }
 
@@ -91,22 +99,39 @@ public class Tables {
         return out;
     }
 
+<<<<<<< Updated upstream
     // get info for tables that can seat the given party
     public List<TableInfo> getAvailable(int guests) {
         List<TableInfo> out = new ArrayList<>();
         for (Table t : tables) {
             if (t.canSeat(guests) >= 0) {
                 out.add(new TableInfo(t.getTableID(), t.getCapacity(), t.getNumSeated()));
+=======
+    public Bill closeTable(int numTable) {
+        for (Table table : tables) {
+            if (table.getTableId() == numTable) {
+                return table.close();
+>>>>>>> Stashed changes
             }
         }
         return out;
     }
+<<<<<<< Updated upstream
 
     // list all currently occupied tables
     public List<Table> getOccupiedTables() {
         List<Table> out = new ArrayList<>();
         for (Table t : tables) {
             if (t.isOccupied()) out.add(t);
+=======
+    
+    public ArrayList<Table> getOccuipiedTables() {
+    	ArrayList<Table> tables = new ArrayList<>();
+    	for (Table table : this.tables) {
+            if (table.getIsOccupied()) {
+                tables.add(table);
+            }
+>>>>>>> Stashed changes
         }
         return out;
     }
@@ -116,4 +141,44 @@ public class Tables {
         Table t = getTable(id);
         return (t != null) ? t.getBill() : null;
     }
+<<<<<<< Updated upstream
+=======
+    
+    public Table getTable(int numTable) {
+    	for (Table table : tables) {
+    		if (table.getTableId() == numTable) {
+    			return table;
+    		}
+    	}
+    	return null;
+    }
+    
+    public boolean assignTable(int numTable, int numPeople, Server server) {
+    	for (Table table : tables) {
+    		if (table.getTableId() == numTable) {
+    			table.seat(numPeople, server);
+    			return true;
+    		}
+    	}
+    	return false;
+    }
+    
+    public void addItemsOrderToTable(int numTable, ArrayList<Item> items) {
+    	for (Table table : tables) {
+    		if (table.getTableId() == numTable) {
+    			table.addItems(items);
+    		}
+    	}
+    }
+    
+    public boolean removeItemFromTable(int numTable, Item item) {
+    	for (Table table : tables) {
+    		if (table.getTableId() == numTable) {
+    			return table.removeItem(item.getName());
+    		}
+    	}
+    	return true;
+    }
+    
+>>>>>>> Stashed changes
 }

@@ -1,10 +1,13 @@
 package model;
 
 import java.util.ArrayList;
+<<<<<<< Updated upstream
 import java.util.HashMap;
 //import java.util.Map;
 import java.util.List;
 import java.util.Map;
+=======
+>>>>>>> Stashed changes
 
 
 public class RestaurantController {
