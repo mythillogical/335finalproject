@@ -23,15 +23,11 @@ public class OrderManagementPanel extends JPanel
     private final JPanel panBusy   = new JPanel(new FlowLayout(FlowLayout.LEFT,10,6));
     private final JPanel panClosed = new JPanel(new FlowLayout(FlowLayout.LEFT,10,6));
 
-    private final JButton btnBack  = new JButton("Back to main");
-
     public OrderManagementPanel(RestaurantController c){
         ctrl = c;
 
         setLayout(new BorderLayout(10,10));
         setBorder(new EmptyBorder(10,10,10,10));
-
-        add(btnBack, BorderLayout.NORTH);
 
         JPanel rows = new JPanel(new GridLayout(3,1,0,10));
         rows.add(wrap("Available Tables", panAvail));
@@ -42,9 +38,6 @@ public class OrderManagementPanel extends JPanel
         refreshTablesPanels();
         ctrl.getModel().addListener(this);
     }
-
-    /* external wiring */
-    public JButton getBackButton(){ return btnBack; }
 
     @Override public void modelChanged(){ refreshTablesPanels(); }
 
