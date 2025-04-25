@@ -29,7 +29,6 @@ public class OrderProcessingWindow extends JFrame {
     private final JList<Item>            lstOrder   = new JList<>(orderModel);
     private final JLabel                 lblTotal   = new JLabel("Total: $0.00");
 
-    /* ------------------------------------------------------------------ */
     public OrderProcessingWindow(RestaurantController c, int tableId,
                                  OrderManagementPanel parent) {
 
@@ -49,10 +48,9 @@ public class OrderProcessingWindow extends JFrame {
         refreshOrderList();
     }
 
-    /* ------------------------------------------------------------------ */
     private void buildUi() {
 
-        /* Info bar ----------------------------------------------------- */
+        /* Info bar */
         Table t = ctrl.getModel().getTables().getTable(tableId);
         JPanel info = new JPanel(new FlowLayout(FlowLayout.LEFT, 18, 4));
         info.add(new JLabel("server: " +
@@ -60,7 +58,7 @@ public class OrderProcessingWindow extends JFrame {
         info.add(new JLabel("guests: " + t.getNumSeated()));
         add(info, BorderLayout.NORTH);
 
-        /* Split: menu (L) | order (R) ---------------------------------- */
+        /* Split: menu (L) | order (R) */
         JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         split.setResizeWeight(0.5);                // 50 / 50 by default
         add(split, BorderLayout.CENTER);
@@ -68,13 +66,13 @@ public class OrderProcessingWindow extends JFrame {
         split.setLeftComponent(buildMenuTabs());
         split.setRightComponent(buildOrderPane());
 
-        /* bottom close ------------------------------------------------- */
+        /* bottom close */
         JButton close = new JButton("Close");
         close.addActionListener(e -> dispose());
         add(close, BorderLayout.SOUTH);
     }
 
-    /* ---------------- Menu (left) ------------------------------------- */
+    /* Menu (left) */
     private JComponent buildMenuTabs() {
 
         model.Menu menu = ctrl.getModel().getMenu();   // fq-name to dodge java.awt.Menu
@@ -109,7 +107,7 @@ public class OrderProcessingWindow extends JFrame {
         return b;
     }
 
-    /* ---------------- Order pane (right) ------------------------------ */
+    /* Order pane (right) */
     private JComponent buildOrderPane() {
 
         /* list renderer */
@@ -155,7 +153,7 @@ public class OrderProcessingWindow extends JFrame {
         return vSplit;
     }
 
-    /* ---------------- helpers ---------------------------------------- */
+    /* helpers */
     private void refreshOrderList() {
 
         orderModel.clear();
@@ -187,14 +185,13 @@ public class OrderProcessingWindow extends JFrame {
         Item sel = lstOrder.getSelectedValue();
         if (sel == null) return;
 
-        /* -------- FIX #edit-mods ------------------------------------ */
+        /* #edit-mods */
         /* locate the *menu* version of this item so we can offer the full
            list of available modifications (the selected instance only
            remembers the mods already chosen).                             */
         Item menuBase = ctrl.getModel().getMenu().getAllItems().stream()
                 .filter(it -> it.getName().equals(sel.getName()))
                 .findFirst().orElse(sel);
-        /* ------------------------------------------------------------- */
 
         Item updated = chooseModsGui(menuBase, sel.getModifications());
         if (updated == sel) return;           // cancelled
@@ -222,7 +219,7 @@ public class OrderProcessingWindow extends JFrame {
         JOptionPane.showMessageDialog(this, "Order updated");
     }
 
-    /* ---------------- modification selector -------------------------- */
+    /* modification selector*/
     /**
      * Menu-style dialog: left = grid of mod buttons, right = list of chosen;
      * supports add / remove before confirming.
