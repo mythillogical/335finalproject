@@ -1,59 +1,41 @@
 package model;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-// stores server name, tips, and assigned tables
-public class Server {
+/** Stores server name, tips and assigned tables. */
+public class Server implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	private final String name;
 	private double tips = 0.0;
-	private final Set<Table> tables = new HashSet<>();
 
-	// ctor: init server with name
-	public Server(String name) {
-		this.name = name;
-	}
+	/* transient – a server’s live-table set is NOT persisted */
+	private transient final Set<Table> tables = new HashSet<>();
 
-	// add a table assignment
-	void addTable(Table t) {
-		tables.add(t);
-	}
+	public Server(String name) { this.name = name; }
 
-	// remove a table assignment
-	void removeTable(Table t) {
-		tables.remove(t);
-	}
+	/* package-private hooks from Table */
+	void addTable(Table t){ tables.add(t); }
+	void removeTable(Table t){ tables.remove(t); }
 
-	// get server name
-	public String getName() {
-		return name;
-	}
+	/* getters */
+	public String getName()  { return name;  }
+	public double getTotalTips(){ return tips; }
+	public int    getNumTables(){ return tables.size(); }
+	public Set<Table> getTables(){ return Collections.unmodifiableSet(tables); }
 
-	// get total tips amount
-	public double getTotalTips() {
-		return tips;
-	}
+	/* tips */
+	public void addTips(double amt){ tips += amt; }
 
-	// get count of tables served
-	public int getNumTables() {
-		return tables.size();
-	}
-
-	// get set of assigned tables (read-only)
-	public Set<Table> getTables() {
-		return Collections.unmodifiableSet(tables);
-	}
-
-	// add tip amount
-	public void addTips(double amount) {
-		tips += amount;
-	}
-
-	// format server info for display
-	@Override
-	public String toString() {
+	@Override public String toString(){
 		return String.format("%s · %d tbl · $%.2f", name, getNumTables(), tips);
 	}
+
+	/* csv helpers */
+	public static String header(){ return "Name,Tips\n"; }
+	public String toCsv()        { return String.format("%s,%.2f\n", name, tips); }
 }

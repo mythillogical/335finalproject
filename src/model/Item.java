@@ -10,7 +10,7 @@ public class Item {
     private final String name;
     private final String category;
     private final double baseCost;
-    private List<Modification> mods;
+    private final List<Modification> mods;
 
     /* plain item – no modifications yet */
     public Item(String n, String c, double cost) {
@@ -73,7 +73,13 @@ public class Item {
         return sb.toString();
     }
 
-    @Override 
+    /** helper used by the gui to create a *new* item instance that
+     *  keeps name/category/price but applies a fresh list of mods */
+    public Item withModifications(List<Modification> chosen){
+        return new Item(name, category, baseCost, chosen);
+    }
+
+    @Override
     public String toString() {
         return name + " $" + baseCost;
     }
