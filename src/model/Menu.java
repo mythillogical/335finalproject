@@ -2,24 +2,16 @@ package model;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-<<<<<<< Updated upstream
 import java.util.*;
-=======
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
->>>>>>> Stashed changes
-
 /* full in-memory menu with add / remove support */
 public class Menu {
-<<<<<<< Updated upstream
 
 	private Map<String,List<Item>> map = new HashMap<>();
 	private List<Item> all = new ArrayList<>();
-
-	public Menu(String csv){ read(csv); }
-=======
 	private Map<String, ArrayList<Item>> menuMap;
 	private ArrayList<String> catigories;
 	private ArrayList<Item> allItems; // to store all the items
@@ -59,7 +51,8 @@ public class Menu {
 	                allItems.add(item);
                 }
             }
->>>>>>> Stashed changes
+        }
+	}
 
 	/* public api */
 	public List<Item> getAllItems(){ return all; }
@@ -89,7 +82,6 @@ public class Menu {
 			}
 		}catch(Exception ignored){}
 	}
-<<<<<<< Updated upstream
 	private void parseMods(String s,Item it){
 		if(s==null||s.isBlank()) return;
 		for(String part:s.split(";")){
@@ -100,10 +92,6 @@ public class Menu {
 								Double.parseDouble(x[1].trim())));
 			}
 		}
-=======
-	
-	public ArrayList<Item> getAllItems() {
-		return allItems;
 	}
 	
 	@Override
@@ -117,6 +105,5 @@ public class Menu {
             str += "\n";
         }
 		return str;
->>>>>>> Stashed changes
 	}
 }
