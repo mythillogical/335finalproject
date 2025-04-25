@@ -3,12 +3,18 @@ package model;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.io.Serializable;
 
 // stores server name, tips, and assigned tables
-public class Server {
+public class Server implements Serializable {
 
+	// implementation for Serializable Interface
+	private static final long serialVersionUID = 1L; 
+	
 	private final String name;
 	private double tips = 0.0;
+	
+	// table is also serializable
 	private final Set<Table> tables = new HashSet<>();
 
 	// ctor: init server with name

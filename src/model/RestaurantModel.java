@@ -2,6 +2,8 @@ package model;
 
 import java.io.FileWriter;
 import java.util.*;
+import java.io.*;
+
 
 /* central state holder with simple observer */
 public class RestaurantModel {
@@ -59,4 +61,45 @@ public class RestaurantModel {
 	public Tables         getTables(){ return tables; }
 	public Map<String,Server> getServers(){ return servers; }
 	public List<Bill>     getClosedTables(){ return closed; }
+	
+	@SuppressWarnings("unchecked")
+	public void saveServers() {
+		try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("servers.dat"))) {
+			out.writeObject(servers);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void loadServers() {
+		try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("servers.dat"))) {
+			Map<String, Server> loaded = (Map<String, Server>) in.readObject();
+			servers.clear();
+			servers.putAll(loaded);
+			fire();
+		} catch (IOException | ClassNotFoundException e) {
+			System.out.println("Could not load servers. Starting fresh.");
+		}
+	}
+
+	public void saveClosedBills() {
+		try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("closedBills.dat"))) {
+			out.writeObject(closed);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void loadClosedBills() {
+		try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("closedBills.dat"))) {
+			List<Bill> loaded = (List<Bill>) in.readObject();
+			closed.clear();
+			closed.addAll(loaded);
+			fire();
+		} catch (IOException | ClassNotFoundException e) {
+			System.out.println("Could not load bills. Starting fresh.");
+		}
+	}
+
+	
 }

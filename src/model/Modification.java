@@ -1,6 +1,11 @@
 package model;
 
-public class Modification {
+import java.io.Serializable;
+
+public class Modification implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
+
 	private String description;
 	private double price;
 	

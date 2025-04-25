@@ -1,10 +1,13 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /* one real-world table */
-public class Table {
+public class Table implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
 
 	private final int  id;          // number printed on the table
 	private final int  cap;         // max seats

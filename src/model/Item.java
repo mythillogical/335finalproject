@@ -4,15 +4,28 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/* immutable menu / order item */
-public class Item {
+import java.io.Serializable;
 
+/* the class represents a single menu item that can be part of a customer's
+ * order. each item has a name, category, base cost, and optional modifications.
+ * this class is immutable with respect to name, category, and base cost, but supports
+ * modification management. Implements Serializable to support saving as part of a
+ * persisted order.
+ * 
+ *  @author: Michael B, Michael D, Asif R, Mohammed A
+ */
+public class Item implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+	
     private final String name;
     private final String category;
     private final double baseCost;
     private List<Modification> mods;
 
-    /* plain item – no modifications yet */
+    /* 
+     * constructs basic item – no modifications 
+     */
     public Item(String n, String c, double cost) {
         name = n;
         category = c;
@@ -20,7 +33,9 @@ public class Item {
         mods = new ArrayList<>();
     }
 
-    /* copy-ctor used when duplicating an existing item (keeps its mods) */
+    /* 
+     * copy-constructor, used when duplicating an existing item (keeps its mods)
+     */
     public Item(Item other) {
         name = other.name;
         category = other.category;
@@ -28,7 +43,9 @@ public class Item {
         mods = new ArrayList<>(other.mods);
     }
 
-    /* ctor used by ui when a custom set of mods is chosen */
+    /* 
+     * constructs used by item with predefined modifications 
+     */
     public Item(String n, String c, double cost, List<Modification> chosen) {
         name = n;
         category = c;
@@ -41,7 +58,7 @@ public class Item {
     public String getCategory() { return category; }
     public double getCost()     { return baseCost; }
 
-    /* read-only view for ui code */
+    /* read-only view for UI code */
     public List<Modification> getModifications() {
         return Collections.unmodifiableList(mods);
     }
