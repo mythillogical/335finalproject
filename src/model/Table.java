@@ -6,6 +6,8 @@ import java.util.List;
 /* one real-world table */
 public class Table {
 
+	private final int  id;          // number printed on the table
+	private final int  cap;         // max seats
 
 	private int     seated = 0;     // current party size
 	private boolean occ    = false; // is someone sitting here?
@@ -22,14 +24,6 @@ public class Table {
 	public int canSeat(int guests) {
 		return occ ? -1 : cap - guests;
 	}
-	
-	public void addItem(Item item) {
-		items.add(item);
-	}
-	
-	public boolean removeItem(String itemName) {
-		return items.removeIf(item -> item.getName().equals(itemName));
-	}
 
 	/* seat a party + hook table into server object */
 	public void seat(int guests, Server s) {
@@ -39,7 +33,6 @@ public class Table {
 		srv.addTable(this);          // keep server state up-to-date
 	}
 
-<<<<<<< Updated upstream
 	/* order helpers */
 	public void addItems(List<Item> order) { items.addAll(order); }
 	public boolean removeItem(Item i)      { return items.remove(i); }
@@ -51,18 +44,6 @@ public class Table {
 		seated = 0;
 		occ    = false;
 		srv    = null;
-=======
-	public TableInfo getTableInfo() {
-		return new TableInfo(tableID, capacity, numSeated);
-	}
-	
-	public boolean getIsOccupied() {
-		return this.isOccupied;
->>>>>>> Stashed changes
-	}
-	
-	public int getTableId() {
-		return this.tableID;
 	}
 
 	/* getters */
@@ -75,3 +56,6 @@ public class Table {
 
 	/* snapshot of what’s owed right now */
 	public Bill getBill() {
+		return new Bill(new ArrayList<>(items), seated, srv);
+	}
+}
