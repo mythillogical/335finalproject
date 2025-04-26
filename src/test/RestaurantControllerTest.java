@@ -2,6 +2,7 @@ package test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import controller.RestaurantController;
 import org.junit.jupiter.api.Test;
 
 import model.*;

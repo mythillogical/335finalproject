@@ -1,5 +1,6 @@
 package view;
 
+import controller.RestaurantController;
 import model.*;
 
 import javax.swing.*;
