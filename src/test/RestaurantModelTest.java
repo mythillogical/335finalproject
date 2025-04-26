@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
-
+/*
+ * A JUnit testcase for RestaurantModel.java
+ */
 class RestaurantModelTest {
 
 	private RestaurantModel model;
