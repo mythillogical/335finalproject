@@ -9,6 +9,9 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/*
+ * A JUnit testcase for Server.java
+ */
 class ServerTest {
 
 	private Server server;
