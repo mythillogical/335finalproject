@@ -6,6 +6,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
+/*
+ * A JUnit testcase file for Modification.java
+ */
 class ModificationTest {
 
 	@Test
