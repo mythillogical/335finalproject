@@ -8,6 +8,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/*
+ * A JUnit testcase for Menu.java
+ */
 class MenuITest {
 
 	
