@@ -10,7 +10,6 @@ import java.util.List;
  * and split costs. 
  * 
  * @author: Michael B, Michael D, Asif R, Mohammed A
- * 
  */
 public class Bill implements Serializable {
 

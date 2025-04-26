@@ -9,7 +9,7 @@ import java.io.Serializable;
 /* the class represents a single menu item that can be part of a customer's
  * order. each item has a name, category, base cost, and optional modifications.
  * this class is immutable with respect to name, category, and base cost, but supports
- * modification management. Implements Serializable to support saving as part of a
+ * modification management. Also, implements Serializable to support saving as part of a
  * persisted order.
  * 
  *  @author: Michael B, Michael D, Asif R, Mohammed A
@@ -44,7 +44,7 @@ public class Item implements Serializable {
     }
 
     /* 
-     * constructs used by item with predefined modifications 
+     * constructor used by item with predefined modifications 
      */
     public Item(String n, String c, double cost, List<Modification> chosen) {
         name = n;
@@ -53,40 +53,55 @@ public class Item implements Serializable {
         mods = new ArrayList<>(chosen);
     }
 
-    /* basic getters */
+    /* 
+     * basic getters
+     */
     public String getName()     { return name; }
     public String getCategory() { return category; }
     public double getCost()     { return baseCost; }
 
-    /* read-only view for UI code */
+    /* 
+     * returns an unmodifiable list of the item's modifications
+     */
     public List<Modification> getModifications() {
         return Collections.unmodifiableList(mods);
     }
 
-    /* mutators (menu loading) */
+    /* 
+     * adds a modification to this item
+     * 
+     */
     public void addModification(Modification m) { mods.add(m); }
 
-    /* cost helpers */
+    /*
+     *  returns the total cost including base cost and all modifications 
+     *  
+     */
     public double getTotalCost() {
         double t = baseCost;
         for (Modification m : mods) t += m.getPrice();
         return t;
     }
 
+    /*
+     * calculates the total cost of a list of items
+     */
     public static double getItemsCost(ArrayList<Item> items) {
         double c = 0;
         for (Item i : items) c += i.getTotalCost();
         return c;
     }
 
-    /* convert this item’s mods back to csv “name:price;…” */
+    /* 
+     * convert this item’s modifications back to CSV string format “name:price;…” 
+     * */
     public String modsToCsv() {
         if (mods.isEmpty()) return "";
         StringBuilder sb = new StringBuilder();
         for (Modification m : mods) {
             sb.append(m.getDescription()).append(':').append(m.getPrice()).append(';');
         }
-        sb.deleteCharAt(sb.length() - 1);        // trailing ;
+        sb.deleteCharAt(sb.length() - 1);        // removes trailing ;
         return sb.toString();
     }
 

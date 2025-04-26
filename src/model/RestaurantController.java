@@ -5,27 +5,38 @@ import view.RestaurantView;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * glue between model and (multiple) views
- * – core behaviour unchanged; a few convenience
- *   helpers were added for the new gui panels
+/*
+ * Controller for the restaurant management system. handles communication between the RestaurantModel (data)
+ * and RestaurantView (UI). Receives user actions and updates the model accordingly. 
+ * 
+ * Author: Michael B, Michael D, Asif R, Mohammed A
  */
 public class RestaurantController {
 
-    /* mvc handles */
     private final RestaurantModel model;
     private final RestaurantView  view;
 
+    /*
+     * constructs a RestaurantController to link the given model and view
+     */
     public RestaurantController(RestaurantModel m, RestaurantView v) {
         model = m;
         view  = v;
     }
 
-    /* server ops */
+    /*
+     * adds a new server to the restaurant system
+     */
     public void handleAddServer(String name)            { model.addServer(name); }
+    
+    /*
+     * removes a new server to the restaurant system
+     */
     public boolean handleRemoveServer(String name)      { return model.removeServer(name); }
 
-    /* seating ops */
+    /*
+     * assigns a table to a server and seats guests at the table
+     */
     public boolean handleAssignTable(int id, int guests, String server) {
         boolean ok = model.assignTableToServer(id, guests, server);
         if (!ok)  view.displayError("Could not assign table (check capacity / availability)");
@@ -33,19 +44,24 @@ public class RestaurantController {
         return ok;
     }
 
+    /*
+     * closes a table, processes the tip, and refreshes the table view
+     */
     public void handleCloseTable(int id, double tip) {
         model.closeTable(id, tip);
         view.displayTables(model.getTables().getTablesInfo());
     }
 
-    /* order ops */
+    /*
+     * adds an order (list of items) to a specific table
+     */
     public void handleAddOrder(int id, ArrayList<Item> items) {
         model.addOrderToTable(id, items);
     }
 
-    /* helpers for gui panels */
-
-    /** does this server currently own at least one occupied table? */
+    /*
+     * checks if a given server currently owns at least one occupied table
+     */
     public boolean checkActiveServer(String srv) {
         return model.getTables().getOccupiedTables()
                 .stream()
@@ -53,7 +69,9 @@ public class RestaurantController {
                         t.getServer().getName().equals(srv));
     }
 
-    /** convenience: list of *non*-occupied tables, already sorted by id */
+    /*
+     * returns a list of available (non-occupied) tables, sorted by table ID
+     */
     public List<Table> getAvailableTables() {
         List<Table> out = new ArrayList<>();
         model.getTables().getTablesInfo().forEach(ti -> {
@@ -64,6 +82,8 @@ public class RestaurantController {
         return out;
     }
 
-    /* expose model for direct read-only access where necessary */
+    /*
+     * exposes the model for direct read only access where necessary
+     */
     public RestaurantModel getModel() { return model; }
 }

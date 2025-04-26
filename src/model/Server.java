@@ -5,7 +5,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.io.Serializable;
 
-// stores server name, tips, and assigned tables
+/*
+ * represents a server (waiter/ waitress) in the restaurant system. stores the server's name,
+ * total tips earned, and assigned tables. 
+ * 
+ * Author: Michael B, Michael D, Asif R, Mohammed A
+ */
 public class Server implements Serializable {
 
 	// implementation for Serializable Interface
@@ -17,17 +22,23 @@ public class Server implements Serializable {
 	// table is also serializable
 	private final Set<Table> tables = new HashSet<>();
 
-	// ctor: init server with name
+	/*
+	 * constructs a Server with the given name
+	 */
 	public Server(String name) {
 		this.name = name;
 	}
 
-	// add a table assignment
+	/*
+	 * adds a table assignment to the server
+	 */
 	public void addTable(Table t) {
 		tables.add(t);
 	}
 
-	// remove a table assignment
+	/*
+	 * removes a table assignment to the server
+	 */
 	public void removeTable(Table t) {
 		tables.remove(t);
 	}
