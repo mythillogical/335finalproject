@@ -9,7 +9,17 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-/** Dashboard showing Available / In-Progress / Recently-Closed tables. */
+/**
+ * GUI panel for managing orders at tables.
+ * 
+ * Allows servers to add items to a table's order and manage ongoing orders.
+ * 
+ * Updates the model through the controller.
+ * 
+ * Author: Michael B, Michael D, Asif R, Mohammed A
+ * Course: CSc 335 - Object-Oriented Programming and Design
+ * Semester: Spring 2025
+ */
 public class OrderManagementPanel extends JPanel
         implements RestaurantModel.ModelListener {
 
