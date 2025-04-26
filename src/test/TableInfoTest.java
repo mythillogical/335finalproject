@@ -4,6 +4,9 @@ import model.TableInfo;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+/*
+ * A JUnit testcase for TableInfo.java
+ */
 class TableInfoTest {
 
 	@Test
