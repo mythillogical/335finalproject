@@ -7,7 +7,17 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-/** view helper swaps content in main frame panel. */
+/*
+ * View component for displaying restaurant information.
+ * 
+ * Handles the display of tables, menu items, bills, and error messages.
+ * 
+ * Acts as the bridge between the model's state and the user interface panels.
+ * 
+ * Author: Michael B, Michael D, Asif R, Mohammed A
+ * Course: CSc 335 - Object-Oriented Programming and Design
+ * Semester: Spring 2025
+ */
 public class RestaurantView {
 
     private final JFrame frame;
