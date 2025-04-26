@@ -6,7 +6,17 @@ import model.*;
 import javax.swing.*;
 import java.awt.*;
 
-/* nicer CRUD ui for servers – includes active-table guard */
+/**
+ * GUI panel for managing servers (wait staff).
+ * 
+ * Allows adding and removing server profiles.
+ * 
+ * Communicates changes to the model via the controller.
+ * 
+ * Author: Michael B, Michael D, Asif R, Mohammed A
+ * Course: CSc 335 - Object-Oriented Programming and Design
+ * Semester: Spring 2025
+ */
 public class ServerManagementPanel extends JPanel
         implements RestaurantModel.ModelListener {
 
