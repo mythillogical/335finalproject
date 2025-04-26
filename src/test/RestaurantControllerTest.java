@@ -13,7 +13,9 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.junit.jupiter.api.BeforeEach;
-
+/*
+ * A JUnit testcase for RestaurantController.java
+ */
 class MockRestaurantView extends RestaurantView {
     boolean errorShown = false;
 
