@@ -15,7 +15,7 @@ It simulates a restaurant’s front-of-house operations from the perspective of 
 - Order management
 - Performance tracking
 
-All features are delivered through an intuitive **Java Swing** GUI.
+All features are delivered through an intuitive **Java Swing** GUI. 
 
 ---
 
@@ -30,7 +30,7 @@ All features are delivered through an intuitive **Java Swing** GUI.
 - ✅ **Persistence**
   - **Menu** stored and loaded from a CSV file (`Menu.csv`)
   - **Servers** and **Closed Bills** serialized using Java I/O
-- ✅ **Graphical User Interface** fully implemented using Java Swing
+- ✅ **Graphical User Interface** fully implemented using Java Swing with help using AI (ChatGPT)
 - ✅ **Unit Testing** over 90% test coverage using JUnit 5
 
 ---
@@ -81,6 +81,16 @@ All features are delivered through an intuitive **Java Swing** GUI.
 - To run tests:
   - Use your IDE's built-in test runner
   - Or run via terminal if JUnit 5 is properly configured.
+
+![Screenshot 2025-04-25 at 6 10 17 PM](https://github.com/user-attachments/assets/3d585cf6-0f58-4810-9754-2b2c1acb6b05)
+![Screenshot 2025-04-25 at 6 11 27 PM](https://github.com/user-attachments/assets/53ca50dd-6065-4f0b-985b-7ccead64cf07)
+![Screenshot 2025-04-25 at 6 11 52 PM](https://github.com/user-attachments/assets/d58260b9-df7c-405d-bcb4-2ec8bc89a16f)
+![Screenshot 2025-04-25 at 6 12 12 PM](https://github.com/user-attachments/assets/730c6cef-fc2a-47db-87ea-f91ce1afbce4)
+![Screenshot 2025-04-25 at 6 13 04 PM](https://github.com/user-attachments/assets/2bbfe93b-8d9e-4095-8f33-666d55de6147)
+![Screenshot 2025-04-25 at 6 13 19 PM](https://github.com/user-attachments/assets/52ef5355-ca01-4cbd-897c-f3664a1671ae)
+![Screenshot 2025-04-25 at 6 13 38 PM](https://github.com/user-attachments/assets/472680e0-e025-44de-9d4a-4c84122b9ca0)
+![Screenshot 2025-04-25 at 6 13 59 PM](https://github.com/user-attachments/assets/dc90ff29-58fa-49e4-b9f4-26e0d2772338)
+![Screenshot 2025-04-25 at 6 14 14 PM](https://github.com/user-attachments/assets/5dfd8da4-5f93-4346-9fd5-f8444cb3eb92)
 
 ---
 
