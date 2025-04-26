@@ -5,8 +5,8 @@ import java.util.*;
 
 /**
  * Central state holder + simple observer.
- * Servers and closed bills are persisted to binary files
- * (servers.dat / closedBills.dat) via Java serialisation.
+ * Servers and closed bills are persisted (servers.dat / closedBills.dat)
+ * via Java serialisation.
  */
 public class RestaurantModel {
 
@@ -30,7 +30,7 @@ public class RestaurantModel {
     private static final String FILE_BILLS   = "closedBills.dat";
 
     public RestaurantModel() {
-        loadServers();
+        loadServers();       // now public – but still called internally
         loadClosedBills();
     }
 
@@ -48,7 +48,7 @@ public class RestaurantModel {
         }catch(IOException ignored){}
     }
 
-    /* ---------- SERVER CRUD ---------- */
+    /* ---------- SERVER CRUD (auto-save) ---------- */
     public void addServer(String n){
         servers.put(n, new Server(n));
         saveServers();
@@ -63,7 +63,7 @@ public class RestaurantModel {
         return ok;
     }
 
-    /* ---------- TABLE & ORDER OPS ---------- */
+    /* ---------- TABLE / ORDER OPS ---------- */
     public boolean assignTableToServer(int id,int g,String srv){
         boolean ok = tables.assignTable(id,g,servers.get(srv));
         if(ok) fire();
@@ -76,14 +76,14 @@ public class RestaurantModel {
 
     /* ---------- CLOSE TABLE ---------- */
     public void closeTable(int id,double tip){
-        Bill current = tables.getBillTable(id);
+        Bill snapshot = tables.getBillTable(id);
         tables.closeTable(id);
 
-        if(current != null){
-            Bill finalBill = new Bill(new ArrayList<>(current.getItems()),
-                                      current.getPeople(),
-                                      servers.get(current.getServer()),
-                                      tip);
+        if(snapshot != null){
+            Bill finalBill = new Bill(new ArrayList<>(snapshot.getItems()),
+                    snapshot.getPeople(),
+                    servers.get(snapshot.getServer()),
+                    tip);
             closed.add(finalBill);
             servers.get(finalBill.getServer()).addTips(tip);
 
@@ -95,7 +95,7 @@ public class RestaurantModel {
 
     /* ---------- persistence helpers ---------- */
     @SuppressWarnings("unchecked")
-    private void loadServers(){
+    public void loadServers(){                     // <— was private
         File f = new File(FILE_SERVERS);
         if(!f.exists()) return;
         try(ObjectInputStream in = new ObjectInputStream(new FileInputStream(f))){
@@ -105,14 +105,14 @@ public class RestaurantModel {
             System.out.println("Could not load servers — starting fresh.");
         }
     }
-    private void saveServers(){
+    public void saveServers(){                     // <— was private
         try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(FILE_SERVERS))){
             out.writeObject(servers);
         }catch(IOException ex){ ex.printStackTrace(); }
     }
 
     @SuppressWarnings("unchecked")
-    private void loadClosedBills(){
+    public void loadClosedBills(){                 // <— was private
         File f = new File(FILE_BILLS);
         if(!f.exists()) return;
         try(ObjectInputStream in = new ObjectInputStream(new FileInputStream(f))){
@@ -122,7 +122,7 @@ public class RestaurantModel {
             System.out.println("Could not load bills — starting fresh.");
         }
     }
-    private void saveClosedBills(){
+    public void saveClosedBills(){                 // <— was private
         try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(FILE_BILLS))){
             out.writeObject(closed);
         }catch(IOException ex){ ex.printStackTrace(); }
