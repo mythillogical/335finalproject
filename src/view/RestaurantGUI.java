@@ -7,8 +7,15 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * Main application frame –
- * now restored “Menu Editor” button and capitalised toolbar labels.
+ * Main application window for the Restaurant Management System.
+ * 
+ * Sets up the overall layout, navigation toolbar, and manages switching between panels.
+ * 
+ * Links the model, view, and controller, and starts the program interface.
+ * 
+ * Author: Michael B, Michael D, Asif R, Mohammed A
+ * Course: CSc 335 - Object-Oriented Programming and Design
+ * Semester: Spring 2025
  */
 public class RestaurantGUI extends JFrame {
 
