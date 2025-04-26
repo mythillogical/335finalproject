@@ -10,6 +10,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/*
+ * A JUnit testcase for Bill.java
+ */
 class BillTest {
 
 	@Test
