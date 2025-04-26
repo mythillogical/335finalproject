@@ -8,6 +8,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
+/*
+ * A JUnit testcase for Item.java
+ */
 class ItemTest {
 
 	@Test
