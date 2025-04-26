@@ -6,7 +6,17 @@ import model.*;
 import javax.swing.*;
 import java.awt.*;
 
-/* modal dialog for paying and closing a table */
+/**
+ * Sub-window for processing payment and closing a table.
+ * 
+ * Handles tipping and final bill calculation for a table.
+ * 
+ * Tied to the Order Management and Table Management workflows.
+ * 
+ * Author: Michael B, Michael D, Asif R, Mohammed A
+ * Course: CSc 335 - Object-Oriented Programming and Design
+ * Semester: Spring 2025
+ */
 public class PaymentWindow extends JDialog {
 
     private final RestaurantController ctrl;
