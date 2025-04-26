@@ -4,89 +4,43 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
- * This class represents a customer's bill including ordered items,
- * the server, party size, and tips. Also handles calculation of item total, tip,
- * and split costs. 
- * 
- * @author: Michael B, Michael D, Asif R, Mohammed A
+/**
+ * Immutable snapshot of what a party owes when a table is closed.
+ * Stores: ordered items, party size, server name, and (optional) tip.
+ * <p>
+ * Serializable so an entire {@code List<Bill>} can be written to
+ * {@code closedBills.dat} via {@link java.io.ObjectOutputStream}.
  */
 public class Bill implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private final List<Item> items;
-    private final int people;
-    private final Server server;
-    private final double tip;
+    private final int        people;
+    private final String     serverName;   // store the name only (simpler)
+    private final double     tip;
 
-    /* 
-     * method constructs a bill without a tip. 
-     *  
-     *  */
+    /* construct with no tip */
     public Bill(ArrayList<Item> items, int people, Server server) {
         this(items, people, server, 0.0);
     }
 
-    /*
-     * method constructs a bill with a tip. 
-     *  
-     *  */
+    /* construct with a tip */
     public Bill(ArrayList<Item> items, int people, Server server, double tip) {
-        this.items = new ArrayList<>(items);
-        this.people = people;
-        this.server = server;
-        this.tip = tip;
+        this.items      = new ArrayList<>(items);
+        this.people     = people;
+        this.serverName = server != null ? server.getName() : "";
+        this.tip        = tip;
     }
 
-    /** 
-     * returns the total cost of all ordered items
-     * 
-     *  */
-    public double getItemsCost() {
-        return Item.getItemsCost(new ArrayList<>(items));
-    }
+    /* ---------- helpers ---------- */
+    public double getItemsCost()        { return Item.getItemsCost(new ArrayList<>(items)); }
+    public double getTotalCost()        { return getItemsCost() + tip; }
+    public double getCostSplitEvenly()  { return people == 0 ? 0 : getTotalCost() / people; }
 
-    /** 
-     * returns the grand total (items and tip)
-     *  
-     *  */
-    public double getTotalCost() {
-        return getItemsCost() + tip;
-    }
-
-    /** 
-     * split cost evenly among guests 
-     * */
-    public double getCostSplitEvenly() {
-        return people == 0 ? 0 : getTotalCost() / people;
-    }
-
-    /*
-     * gets the list of ordered items
-     */
-    public List<Item> getItems() {
-        return new ArrayList<>(items);
-    }
-
-    /*
-     * gets the number of people
-     */
-    public int getPeople() {
-        return people;
-    }
-
-    /*
-     * gets the server responsible for this bill
-     */
-    public Server getServer() {
-        return server;
-    }
-
-    /*
-     * gets the tip amount on this bill
-     */
-    public double getTip() {
-        return tip;
-    }
+    /* ---------- getters ---------- */
+    public List<Item> getItems()  { return new ArrayList<>(items); }
+    public int        getPeople() { return people; }
+    public String     getServer() { return serverName; }
+    public double     getTip()    { return tip; }
 }

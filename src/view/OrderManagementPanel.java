@@ -8,17 +8,14 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-/**
- * Dashboard showing Available Tables / In Progress / Recently Closed.
- * Uses card-style panels that open the appropriate dialogs.
- */
+/** Dashboard showing Available / In-Progress / Recently-Closed tables. */
 public class OrderManagementPanel extends JPanel
         implements RestaurantModel.ModelListener {
 
-    /* mvc handles */
+    /* mvc */
     private final RestaurantController ctrl;
 
-    /* layout panels */
+    /* strips */
     private final JPanel panAvail  = new JPanel(new FlowLayout(FlowLayout.LEFT,10,6));
     private final JPanel panBusy   = new JPanel(new FlowLayout(FlowLayout.LEFT,10,6));
     private final JPanel panClosed = new JPanel(new FlowLayout(FlowLayout.LEFT,10,6));
@@ -31,9 +28,9 @@ public class OrderManagementPanel extends JPanel
 
         JPanel rows = new JPanel(new GridLayout(3,1,0,10));
         rows.add(wrap("Available Tables", panAvail));
-        rows.add(wrap("In Progress",      panBusy));
+        rows.add(wrap("In Progress",      panBusy ));
         rows.add(wrap("Recently Closed",  panClosed));
-        add(rows, BorderLayout.CENTER);
+        add(rows,BorderLayout.CENTER);
 
         refreshTablesPanels();
         ctrl.getModel().addListener(this);
@@ -41,68 +38,60 @@ public class OrderManagementPanel extends JPanel
 
     @Override public void modelChanged(){ refreshTablesPanels(); }
 
+    /* ---------- strip rebuild ---------- */
     private void refreshTablesPanels(){
-        panAvail .removeAll();
-        panBusy  .removeAll();
+        panAvail.removeAll();
+        panBusy .removeAll();
         panClosed.removeAll();
 
-        Tables tables = ctrl.getModel().getTables();
+        Tables tbls = ctrl.getModel().getTables();
 
-        /* available (NOT occupied) */
-        for (TableInfo info : tables.getAvailable(1)){           // guests arg unused
-            Table t = tables.getTable(info.getId());
-            if(t!=null && !t.isOccupied())
-                panAvail.add(cardForAvailable(t));
+        for(TableInfo ti: tbls.getAvailable(1)){
+            Table t = tbls.getTable(ti.getId());
+            if(t != null && !t.isOccupied()) panAvail.add(cardForAvailable(t));
         }
-
-        /* busy (occupied) */
-        for (Table t : tables.getOccupiedTables())
-            panBusy.add(cardForBusy(t));
-
-        /* closed bills */
-        for (Bill b : ctrl.getModel().getClosedTables())
-            panClosed.add(cardForClosed(b));
+        for(Table t : tbls.getOccupiedTables()) panBusy.add(cardForBusy(t));
+        for(Bill b : ctrl.getModel().getClosedTables()) panClosed.add(cardForClosed(b));
 
         revalidate(); repaint();
     }
 
-    /*card builders */
-
+    /* ---------- cards ---------- */
     private JPanel cardForAvailable(Table t){
-        JPanel card = makeCard(new Color(220,255,220));
-        card.add(label(t), BorderLayout.CENTER);
-
-        card.addMouseListener(new MouseAdapter(){
+        JPanel cd = makeCard(new Color(220,255,220));
+        cd.add(label(t), BorderLayout.CENTER);
+        cd.addMouseListener(new MouseAdapter(){
             @Override public void mouseClicked(MouseEvent e){ seatDialog(t); }
         });
-        return card;
+        return cd;
     }
 
     private JPanel cardForBusy(Table t){
-        JPanel card = makeCard(new Color(255,255,220));
-        card.add(label(t), BorderLayout.NORTH);
-        card.add(new JLabel("Server: "+t.getServer().getName()), BorderLayout.CENTER);
-        card.add(new JLabel("Guests: "+t.getNumSeated()),         BorderLayout.SOUTH);
-
-        card.addMouseListener(new MouseAdapter(){
+        JPanel cd = makeCard(new Color(255,255,220));
+        cd.add(label(t), BorderLayout.NORTH);
+        cd.add(new JLabel("Server: "+t.getServer().getName()), BorderLayout.CENTER);
+        cd.add(new JLabel("Guests: "+t.getNumSeated()),         BorderLayout.SOUTH);
+        cd.addMouseListener(new MouseAdapter(){
             @Override public void mouseClicked(MouseEvent e){ chooseBusyAction(t); }
         });
-        return card;
+        return cd;
     }
 
     private JPanel cardForClosed(Bill b){
-        JPanel card = makeCard(new Color(255,220,220));
-        card.add(new JLabel("<html><b>Table "
-                + b.getServer().getName()+"</b></html>"), BorderLayout.NORTH);
-        card.add(new JLabel("Total $" + String.format("%.2f", b.getTotalCost())),
+        JPanel cd = makeCard(new Color(255,220,220));
+        cd.add(new JLabel("<html><b>Table "+ b.getServer()+"</b></html>"),
+                BorderLayout.NORTH);
+        cd.add(new JLabel("Total $"+String.format("%.2f", b.getTotalCost())),
                 BorderLayout.CENTER);
-        return card;
+        return cd;
     }
 
-    /* dialog helpers */
-
+    /* ---------- busy-table dialog ---------- */
     private void chooseBusyAction(Table t){
-        String[] ops = {"Modify order","Process payment"};
+        boolean empty = t.getItems().isEmpty();
+        String first  = empty ? "Create order" : "Modify order";
+        String[] ops  = { first, "Process payment" };
+
         int ch = JOptionPane.showOptionDialog(this,
                 "Table "+t.getTableID()+": choose action",
                 "Table Options",
@@ -110,28 +99,23 @@ public class OrderManagementPanel extends JPanel
                 JOptionPane.QUESTION_MESSAGE,
                 null, ops, ops[0]);
 
-        if(ch==0) openOrderWindow(t);
-        else if(ch==1) openPaymentWindow(t);
+        if(ch == 0) openOrderWindow(t);
+        else if(ch == 1) openPaymentWindow(t);
     }
 
     private void openOrderWindow(Table t){
         new OrderProcessingWindow(ctrl, t.getTableID(), this).setVisible(true);
     }
-
     private void openPaymentWindow(Table t){
         Bill b = ctrl.getModel().getTables().getBillTable(t.getTableID());
-        if(b==null) return;
-        new PaymentWindow(ctrl, b, t.getTableID(), this).setVisible(true);
+        if(b != null) new PaymentWindow(ctrl, b, t.getTableID(), this).setVisible(true);
     }
 
-    /* seat-table dialog */
+    /* ---------- seat-party dialog ---------- */
     private void seatDialog(Table t){
 
-        /* (Window,String,ModalityType) */
-        JDialog dlg = new JDialog(
-                SwingUtilities.getWindowAncestor(this),
-                "Seat table " + t.getTableID(),
-                Dialog.ModalityType.APPLICATION_MODAL);
+        JDialog dlg = new JDialog(SwingUtilities.getWindowAncestor(this),
+                "Seat table "+t.getTableID(), Dialog.ModalityType.APPLICATION_MODAL);
 
         dlg.setLayout(new BorderLayout(10,10));
         dlg.setSize(320,190);
@@ -158,8 +142,8 @@ public class OrderManagementPanel extends JPanel
 
         JButton ok = new JButton("Seat");
         ok.addActionListener(e -> {
-            String srv = (String)srvBox.getSelectedItem();
-            int guests = (Integer)spn.getValue();
+            String srv   = (String) srvBox.getSelectedItem();
+            int guests   = (Integer) spn.getValue();
             if(ctrl.handleAssignTable(t.getTableID(), guests, srv))
                 dlg.dispose();
         });
@@ -167,8 +151,7 @@ public class OrderManagementPanel extends JPanel
         dlg.setVisible(true);
     }
 
-    /* helpers */
-
+    /* ---------- helpers ---------- */
     private static JPanel makeCard(Color bg){
         JPanel p = new JPanel(new BorderLayout());
         p.setPreferredSize(new Dimension(170,80));
@@ -191,5 +174,4 @@ public class OrderManagementPanel extends JPanel
 
     /* external refresh from children */
     public void refresh(){ refreshTablesPanels(); }
-
 }

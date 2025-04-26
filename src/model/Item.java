@@ -1,112 +1,102 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import java.io.Serializable;
+import java.util.*;
 
-/* the class represents a single menu item that can be part of a customer's
- * order. each item has a name, category, base cost, and optional modifications.
- * this class is immutable with respect to name, category, and base cost, but supports
- * modification management. Also, implements Serializable to support saving as part of a
- * persisted order.
- * 
- *  @author: Michael B, Michael D, Asif R, Mohammed A
+/**
+ * Immutable menu / order item.
+ * Serializable so it can be embedded inside a serialised {@link Bill}.
  */
 public class Item implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-	
+    private static final long serialVersionUID = 1L;
+
     private final String name;
     private final String category;
     private final double baseCost;
-    private List<Modification> mods;
+    private final List<Modification> mods;
 
-    /* 
-     * constructs basic item – no modifications 
-     */
+    /* plain item – no modifications */
     public Item(String n, String c, double cost) {
-        name = n;
-        category = c;
-        baseCost = cost;
-        mods = new ArrayList<>();
+        name      = n;
+        category  = c;
+        baseCost  = cost;
+        mods      = new ArrayList<>();
     }
 
-    /* 
-     * copy-constructor, used when duplicating an existing item (keeps its mods)
-     */
+    /* copy-ctor */
     public Item(Item other) {
-        name = other.name;
-        category = other.category;
-        baseCost = other.baseCost;
-        mods = new ArrayList<>(other.mods);
+        name      = other.name;
+        category  = other.category;
+        baseCost  = other.baseCost;
+        mods      = new ArrayList<>(other.mods);
     }
 
-    /* 
-     * constructor used by item with predefined modifications 
-     */
+    /* ctor with predefined modifications */
     public Item(String n, String c, double cost, List<Modification> chosen) {
-        name = n;
-        category = c;
-        baseCost = cost;
-        mods = new ArrayList<>(chosen);
+        name      = n;
+        category  = c;
+        baseCost  = cost;
+        mods      = new ArrayList<>(chosen);
     }
 
-    /* 
-     * basic getters
-     */
-    public String getName()     { return name; }
-    public String getCategory() { return category; }
-    public double getCost()     { return baseCost; }
+    /* ---------- basic getters ---------- */
+    public String getName()        { return name; }
+    public String getCategory()    { return category; }
+    public double getCost()        { return baseCost; }
 
-    /* 
-     * returns an unmodifiable list of the item's modifications
-     */
+    /* read-only view for UI */
     public List<Modification> getModifications() {
         return Collections.unmodifiableList(mods);
     }
 
-    /* 
-     * adds a modification to this item
-     * 
-     */
+    /* menu-loading helper */
     public void addModification(Modification m) { mods.add(m); }
 
-    /*
-     *  returns the total cost including base cost and all modifications 
-     *  
-     */
+    /* ---------- cost helpers ---------- */
     public double getTotalCost() {
         double t = baseCost;
         for (Modification m : mods) t += m.getPrice();
         return t;
     }
-
-    /*
-     * calculates the total cost of a list of items
-     */
-    public static double getItemsCost(ArrayList<Item> items) {
+    public static double getItemsCost(List<Item> items) {
         double c = 0;
         for (Item i : items) c += i.getTotalCost();
         return c;
     }
 
-    /* 
-     * convert this item’s modifications back to CSV string format “name:price;…” 
-     * */
+    /* mods → CSV (still used when writing Menu.csv) */
     public String modsToCsv() {
         if (mods.isEmpty()) return "";
         StringBuilder sb = new StringBuilder();
-        for (Modification m : mods) {
-            sb.append(m.getDescription()).append(':').append(m.getPrice()).append(';');
-        }
-        sb.deleteCharAt(sb.length() - 1);        // removes trailing ;
+        for (Modification m : mods)
+            sb.append(m.getDescription())
+              .append(':')
+              .append(m.getPrice())
+              .append(';');
+        sb.deleteCharAt(sb.length() - 1);
         return sb.toString();
     }
 
-    @Override 
-    public String toString() {
-        return name + " $" + baseCost;
+    /* create a fresh instance with new mods */
+    public Item withModifications(List<Modification> chosen) {
+        return new Item(name, category, baseCost, chosen);
     }
+
+    /* equality so JList.remove works properly */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Item)) return false;
+        Item other = (Item) o;
+        return  Double.compare(other.baseCost, baseCost) == 0 &&
+                Objects.equals(name, other.name) &&
+                Objects.equals(category, other.category) &&
+                Objects.equals(mods, other.mods);
+    }
+    @Override
+    public int hashCode() { return Objects.hash(name, category, baseCost, mods); }
+
+    @Override
+    public String toString() { return name + " $" + baseCost; }
 }

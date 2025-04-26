@@ -1,76 +1,40 @@
 package model;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.io.Serializable;
+import java.util.*;
 
-/*
- * represents a server (waiter/ waitress) in the restaurant system. stores the server's name,
- * total tips earned, and assigned tables. 
- * 
- * Author: Michael B, Michael D, Asif R, Mohammed A
+/**
+ * Represents a waiter / waitress.
+ * Keeps name, total tips, and the *live* set of assigned tables.
+ * The table set is marked {@code transient} so active UI state is
+ * not persisted to disk.
  */
 public class Server implements Serializable {
 
-	// implementation for Serializable Interface
-	private static final long serialVersionUID = 1L; 
-	
-	private final String name;
-	private double tips = 0.0;
-	
-	// table is also serializable
-	private final Set<Table> tables = new HashSet<>();
+    private static final long serialVersionUID = 1L;
 
-	/*
-	 * constructs a Server with the given name
-	 */
-	public Server(String name) {
-		this.name = name;
-	}
+    private final String name;
+    private double tips = 0.0;
 
-	/*
-	 * adds a table assignment to the server
-	 */
-	public void addTable(Table t) {
-		tables.add(t);
-	}
+    /* live tables are NOT persisted */
+    private transient final Set<Table> tables = new HashSet<>();
 
-	/*
-	 * removes a table assignment to the server
-	 */
-	public void removeTable(Table t) {
-		tables.remove(t);
-	}
+    public Server(String name) { this.name = name; }
 
-	// get server name
-	public String getName() {
-		return name;
-	}
+    /* hooks used by Table */
+    void addTable(Table t)    { tables.add(t); }
+    void removeTable(Table t) { tables.remove(t); }
 
-	// get total tips amount
-	public double getTotalTips() {
-		return tips;
-	}
+    /* ---------- getters ---------- */
+    public String getName()      { return name; }
+    public double getTotalTips() { return tips; }
+    public int    getNumTables() { return tables.size(); }
+    public Set<Table> getTables(){ return Collections.unmodifiableSet(tables); }
 
-	// get count of tables served
-	public int getNumTables() {
-		return tables.size();
-	}
+    /* ---------- tips ---------- */
+    public void addTips(double amt){ tips += amt; }
 
-	// get set of assigned tables (read-only)
-	public Set<Table> getTables() {
-		return Collections.unmodifiableSet(tables);
-	}
-
-	// add tip amount
-	public void addTips(double amount) {
-		tips += amount;
-	}
-
-	// format server info for display
-	@Override
-	public String toString() {
-		return String.format("%s · %d tbl · $%.2f", name, getNumTables(), tips);
-	}
+    @Override public String toString(){
+        return String.format("%s · %d tbl · $%.2f", name, getNumTables(), tips);
+    }
 }

@@ -5,29 +5,31 @@ import model.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Per-table order window – lets a server add / remove items for the live ticket.
+ * Per-table order window with draggable panes and
+ * a menu-style modification selector.
  */
 public class OrderProcessingWindow extends JFrame {
 
-    /* MVC hooks */
+    /* mvc */
     private final RestaurantController ctrl;
-    private final int  tableId;
+    private final int tableId;
     private final OrderManagementPanel parent;
 
     /* state */
-    private final List<Item> existing = new ArrayList<>();   // items already on the ticket
-    private final List<Item> newItems = new ArrayList<>();   // items added in this session
+    private final List<Item> existing = new ArrayList<>();
+    private final List<Item> newItems = new ArrayList<>();
 
-    /* ui bits we need to mutate */
-    private final JTextArea txtSummary = new JTextArea();
+    /* ui models */
+    private final DefaultListModel<Item> orderModel = new DefaultListModel<>();
+    private final JList<Item>            lstOrder   = new JList<>(orderModel);
+    private final JLabel                 lblTotal   = new JLabel("Total: $0.00");
 
-    public OrderProcessingWindow(RestaurantController c,
-                                 int tableId,
+    public OrderProcessingWindow(RestaurantController c, int tableId,
                                  OrderManagementPanel parent) {
 
         this.ctrl    = c;
@@ -38,163 +40,257 @@ public class OrderProcessingWindow extends JFrame {
         if (snap != null) existing.addAll(snap.getItems());
 
         setTitle("table " + tableId + " – order");
-        setSize(900, 600);
+        setSize(920, 620);
         setLocationRelativeTo(parent);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         buildUi();
-        refreshSummary();
+        refreshOrderList();
     }
 
     private void buildUi() {
 
-        /* top info bar */
+        /* Info bar */
         Table t = ctrl.getModel().getTables().getTable(tableId);
-
         JPanel info = new JPanel(new FlowLayout(FlowLayout.LEFT, 18, 4));
         info.add(new JLabel("server: " +
                 (t.getServer() != null ? t.getServer().getName() : "-")));
         info.add(new JLabel("guests: " + t.getNumSeated()));
         add(info, BorderLayout.NORTH);
 
-        /* split pane */
+        /* Split: menu (L) | order (R) */
         JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        split.setResizeWeight(0.70);
+        split.setResizeWeight(0.5);                // 50 / 50 by default
         add(split, BorderLayout.CENTER);
 
-        /* left: MENU TABS */
+        split.setLeftComponent(buildMenuTabs());
+        split.setRightComponent(buildOrderPane());
+
+        /* bottom close */
+        JButton close = new JButton("Close");
+        close.addActionListener(e -> dispose());
+        add(close, BorderLayout.SOUTH);
+    }
+
+    /* Menu (left) */
+    private JComponent buildMenuTabs() {
+
+        model.Menu menu = ctrl.getModel().getMenu();   // fq-name to dodge java.awt.Menu
         JTabbedPane tabs = new JTabbedPane();
 
-        model.Menu menu = ctrl.getModel().getMenu();   // fully-qualified to avoid AWT clash
-        List<String> cats = menu.getAllItems()
-                .stream()
-                .map(Item::getCategory)
-                .distinct()
-                .collect(Collectors.toList());
+        List<String> cats = menu.getAllItems().stream()
+                .map(Item::getCategory).distinct().collect(Collectors.toList());
 
         for (String cat : cats) {
             JPanel grid = new JPanel(new GridLayout(0, 3, 8, 8));
             grid.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-            for (Item it : menu.getAllItems()) {
+            for (Item it : menu.getAllItems())
                 if (it.getCategory().equals(cat))
                     grid.add(makeItemButton(it));
-            }
+
             JScrollPane sc = new JScrollPane(grid);
             sc.getVerticalScrollBar().setUnitIncrement(16);
             tabs.addTab(cat, sc);
         }
-
-        split.setLeftComponent(tabs);
-
-        /* right: ORDER SUMMARY */
-        JPanel order = new JPanel(new BorderLayout(0, 10));
-        order.setBorder(BorderFactory.createTitledBorder("current order"));
-
-        txtSummary.setEditable(false);
-        txtSummary.setFont(new Font("monospaced", Font.PLAIN, 14));
-        order.add(new JScrollPane(txtSummary), BorderLayout.CENTER);
-
-        /* buttons */
-        JPanel btns = new JPanel(new GridLayout(1, 3, 6, 0));
-        JButton btnRemove = new JButton("remove selected");
-        JButton btnClear  = new JButton("clear new");
-        JButton btnSend   = new JButton("submit order");
-        btns.add(btnRemove); btns.add(btnClear); btns.add(btnSend);
-        order.add(btns, BorderLayout.SOUTH);
-
-        split.setRightComponent(order);
-
-        /* listeners */
-        btnClear .addActionListener(e -> { newItems.clear(); refreshSummary(); });
-
-        btnRemove.addActionListener(e -> {
-            String sel = txtSummary.getSelectedText();
-            if (sel != null) removeByName(sel.trim());
-        });
-
-        btnSend.addActionListener(e -> submitOrder());
-
-        /* bottom close */
-        JButton close = new JButton("close");
-        close.addActionListener(e -> dispose());
-        add(close, BorderLayout.SOUTH);
+        return tabs;
     }
 
-    /*helpers*/
-
-    private JButton makeItemButton(Item src) {
-        JButton b = new JButton("<html><center>" + src.getName() +
-                "<br>$" + String.format("%.2f", src.getCost()) + "</center></html>");
+    private JButton makeItemButton(Item base) {
+        JButton b = new JButton("<html><center>" + base.getName() +
+                "<br>$" + String.format("%.2f", base.getCost()) + "</center></html>");
         b.addActionListener(e -> {
-            newItems.add(src);
-            refreshSummary();
+            Item customised = chooseModsGui(base, /*initial*/ null);
+            newItems.add(customised);
+            refreshOrderList();
         });
         return b;
     }
 
-    private void refreshSummary() {
+    /* Order pane (right) */
+    private JComponent buildOrderPane() {
 
-        StringBuilder sb = new StringBuilder();
-        double total = 0;
+        /* list renderer */
+        lstOrder.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        lstOrder.setFont(new Font("monospaced", Font.PLAIN, 14));
+        lstOrder.setCellRenderer((JList<? extends Item> list, Item value,
+                                  int index, boolean sel, boolean focus) -> {
+            JLabel l = new JLabel(String.format("%s  $%.2f",
+                    value.getName(), value.getTotalCost()));
+            l.setOpaque(true);
+            l.setBackground(sel ? list.getSelectionBackground() : list.getBackground());
+            l.setForeground(sel ? list.getSelectionForeground() : list.getForeground());
+            return l;
+        });
 
-        if (!existing.isEmpty()) {
-            sb.append("EXISTING ITEMS:\n");
-            for (Item i : existing) {
-                sb.append(String.format("%-28s $%.2f%n", i.getName(), i.getCost()));
-                total += i.getCost();
-            }
-            sb.append('\n');
-        }
+        JScrollPane scOrder = new JScrollPane(lstOrder);
 
-        if (!newItems.isEmpty()) {
-            sb.append("NEW ITEMS:\n");
-            for (Item i : newItems) {
-                sb.append(String.format("%-28s $%.2f%n", i.getName(), i.getCost()));
-                total += i.getCost();
-            }
-            sb.append('\n');
-        }
+        /* buttons row */
+        JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JButton bRemove = new JButton("Remove Selected");
+        JButton bEdit   = new JButton("Edit Mods");
+        JButton bClear  = new JButton("Clear New");
+        JButton bSend   = new JButton("Submit Order");
+        btns.add(bRemove); btns.add(bEdit); btns.add(bClear); btns.add(bSend);
 
-        sb.append("\nTOTAL: $").append(String.format("%.2f", total));
-        txtSummary.setText(sb.toString());
+        /* footer (total + buttons) */
+        JPanel footer = new JPanel(new BorderLayout());
+        footer.add(lblTotal, BorderLayout.WEST);
+        footer.add(btns,     BorderLayout.EAST);
+
+        /* vertical split – list top, buttons bottom */
+        JSplitPane vSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+                scOrder, footer);
+        vSplit.setResizeWeight(0.9);
+        vSplit.setDividerSize(6);
+
+        /* button actions */
+        bRemove.addActionListener(e -> doRemove());
+        bEdit  .addActionListener(e -> doEditMods());
+        bClear .addActionListener(e -> { newItems.clear(); refreshOrderList(); });
+        bSend  .addActionListener(e -> doSubmit());
+
+        return vSplit;
     }
 
-    private void submitOrder() {
+    /* helpers */
+    private void refreshOrderList() {
+
+        orderModel.clear();
+        existing.forEach(orderModel::addElement);
+        newItems .forEach(orderModel::addElement);
+
+        double tot = 0;
+        Enumeration<Item> en = orderModel.elements();
+        while (en.hasMoreElements()) tot += en.nextElement().getTotalCost();
+        lblTotal.setText("Total: $" + String.format("%.2f", tot));
+    }
+
+    private void doRemove() {
+        Item sel = lstOrder.getSelectedValue();
+        if (sel == null) return;
+
+        if (newItems.remove(sel)) { refreshOrderList(); return; }
+
+        if (existing.contains(sel)) {
+            if (ctrl.getModel().getTables()
+                    .removeItemFromTable(tableId, sel)) {
+                existing.remove(sel); refreshOrderList();
+            }
+        }
+    }
+
+    private void doEditMods() {
+
+        Item sel = lstOrder.getSelectedValue();
+        if (sel == null) return;
+
+        /* #edit-mods */
+        /* locate the *menu* version of this item so we can offer the full
+           list of available modifications (the selected instance only
+           remembers the mods already chosen).                             */
+        Item menuBase = ctrl.getModel().getMenu().getAllItems().stream()
+                .filter(it -> it.getName().equals(sel.getName()))
+                .findFirst().orElse(sel);
+
+        Item updated = chooseModsGui(menuBase, sel.getModifications());
+        if (updated == sel) return;           // cancelled
+
+        if (newItems.remove(sel))   newItems.add(updated);
+        else {
+            existing.remove(sel);
+            existing.add(updated);
+        }
+        refreshOrderList();
+    }
+
+    private void doSubmit() {
         if (newItems.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "no new items to submit");
-            return;
+            JOptionPane.showMessageDialog(this, "No new items to submit"); return;
         }
         ctrl.handleAddOrder(tableId, new ArrayList<>(newItems));
         newItems.clear();
 
-        /* refresh local copy of existing items */
         Bill snap = ctrl.getModel().getTables().getBillTable(tableId);
         existing.clear();
         if (snap != null) existing.addAll(snap.getItems());
 
-        refreshSummary();
-        parent.refresh();
-        JOptionPane.showMessageDialog(this, "order updated");
+        refreshOrderList(); parent.refresh();
+        JOptionPane.showMessageDialog(this, "Order updated");
     }
 
-    /** try to remove by name – new items first, then ask Tables to remove */
-    private void removeByName(String name) {
+    /* modification selector*/
+    /**
+     * Menu-style dialog: left = grid of mod buttons, right = list of chosen;
+     * supports add / remove before confirming.
+     *
+     * @param base     item whose mods to show
+     * @param initial  mods pre-selected (edit case) or null
+     * @return         customised Item (or original if cancelled)
+     */
+    private Item chooseModsGui(Item base, List<Modification> initial) {
 
-        if (newItems.removeIf(i -> i.getName().equals(name))) {
-            refreshSummary();
-            return;
+        List<Modification> all = base.getModifications();
+        if (all.isEmpty()) return base;
+
+        /* chosen list model & ui */
+        DefaultListModel<Modification> mdlChosen = new DefaultListModel<>();
+        JList<Modification> lstChosen = new JList<>(mdlChosen);
+        lstChosen.setVisibleRowCount(8);
+
+        /* map each mod to its button so we can toggle enable/disable */
+        Map<Modification, JButton> btnMap = new HashMap<>();
+
+        JPanel grid = new JPanel(new GridLayout(0, 2, 6, 6));
+        grid.setBorder(new EmptyBorder(6, 6, 6, 6));
+
+        for (Modification m : all) {
+            JButton b = new JButton(String.format("%s ($%.2f)",
+                    m.getDescription(), m.getPrice()));
+            btnMap.put(m, b);
+            b.addActionListener(e -> {
+                mdlChosen.addElement(m);
+                b.setEnabled(false);
+            });
+            grid.add(b);
         }
 
-        for (Item i : existing) {
-            if (i.getName().equals(name)) {
-                boolean ok = ctrl.getModel().getTables().removeItemFromTable(tableId, i);
-                if (ok) {
-                    existing.remove(i);
-                    refreshSummary();
-                }
-                return;
+        JButton bRemove = new JButton("Remove Selected");
+        bRemove.addActionListener(e -> {
+            for (Modification m : lstChosen.getSelectedValuesList()) {
+                mdlChosen.removeElement(m);
+                btnMap.get(m).setEnabled(true);
+            }
+        });
+
+        /* pre-select if editing */
+        if (initial != null) {
+            for (Modification m : initial) {
+                mdlChosen.addElement(m);
+                JButton b = btnMap.get(m);
+                if (b != null) b.setEnabled(false);
             }
         }
+
+        /* layout dialog */
+        JPanel right = new JPanel(new BorderLayout(6, 4));
+        right.add(new JScrollPane(lstChosen), BorderLayout.CENTER);
+        right.add(bRemove, BorderLayout.SOUTH);
+
+        JPanel body = new JPanel(new BorderLayout(10, 0));
+        body.add(grid,  BorderLayout.CENTER);
+        body.add(right, BorderLayout.EAST);
+
+        int ok = JOptionPane.showConfirmDialog(this, body,
+                "Choose Modifications", JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
+
+        if (ok != JOptionPane.OK_OPTION) return base;
+
+        List<Modification> chosen = new ArrayList<>();
+        mdlChosen.elements().asIterator().forEachRemaining(chosen::add);
+
+        return new Item(base.getName(), base.getCategory(),
+                base.getCost(), chosen);
     }
 }
