@@ -9,6 +9,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/*
+ * A JUnit testcase for Tables.java
+ */
 class TableTest {
 
 	private Table table;
