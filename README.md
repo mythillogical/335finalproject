@@ -1,4 +1,4 @@
-### 🍽️ Restaurant Management System
+# 🍽️ Restaurant Management System
 
 An interactive Java-based restaurant simulation application with a graphical user interface.  
 Servers can manage tables, take and modify orders, calculate bills with tips, and generate detailed sales reports.  
@@ -71,9 +71,7 @@ All features are delivered through an intuitive **Java Swing** GUI.
 ---
 
 ### 📂 Project Structure
-
-
-
+![Final_Project_UML](https://github.com/user-attachments/assets/24385d19-b7ed-4699-a363-a66434f293d5)
 ---
 
 ## ✅ Unit Testing
