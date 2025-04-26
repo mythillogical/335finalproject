@@ -11,8 +11,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Per-table order window with draggable panes and
- * a menu-style modification selector.
+ * Sub-window for processing a new order for a specific table.
+ * 
+ * Allows item selection and finalization of the order.
+ * 
+ * Tied to the Order Management Panel.
+ * 
+ * Author: Michael B, Michael D, Asif R, Mohammed A
+ * Course: CSc 335 - Object-Oriented Programming and Design
+ * Semester: Spring 2025
  */
 public class OrderProcessingWindow extends JFrame {
 
