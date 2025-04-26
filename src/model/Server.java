@@ -1,41 +1,40 @@
 package model;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
-/** Stores server name, tips and assigned tables. */
+/**
+ * Represents a waiter / waitress.
+ * Keeps name, total tips, and the *live* set of assigned tables.
+ * The table set is marked {@code transient} so active UI state is
+ * not persisted to disk.
+ */
 public class Server implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private final String name;
-	private double tips = 0.0;
+    private final String name;
+    private double tips = 0.0;
 
-	/* transient – a server’s live-table set is NOT persisted */
-	private transient final Set<Table> tables = new HashSet<>();
+    /* live tables are NOT persisted */
+    private transient final Set<Table> tables = new HashSet<>();
 
-	public Server(String name) { this.name = name; }
+    public Server(String name) { this.name = name; }
 
-	/* package-private hooks from Table */
-	void addTable(Table t){ tables.add(t); }
-	void removeTable(Table t){ tables.remove(t); }
+    /* hooks used by Table */
+    void addTable(Table t)    { tables.add(t); }
+    void removeTable(Table t) { tables.remove(t); }
 
-	/* getters */
-	public String getName()  { return name;  }
-	public double getTotalTips(){ return tips; }
-	public int    getNumTables(){ return tables.size(); }
-	public Set<Table> getTables(){ return Collections.unmodifiableSet(tables); }
+    /* ---------- getters ---------- */
+    public String getName()      { return name; }
+    public double getTotalTips() { return tips; }
+    public int    getNumTables() { return tables.size(); }
+    public Set<Table> getTables(){ return Collections.unmodifiableSet(tables); }
 
-	/* tips */
-	public void addTips(double amt){ tips += amt; }
+    /* ---------- tips ---------- */
+    public void addTips(double amt){ tips += amt; }
 
-	@Override public String toString(){
-		return String.format("%s · %d tbl · $%.2f", name, getNumTables(), tips);
-	}
-
-	/* csv helpers */
-	public static String header(){ return "Name,Tips\n"; }
-	public String toCsv()        { return String.format("%s,%.2f\n", name, tips); }
+    @Override public String toString(){
+        return String.format("%s · %d tbl · $%.2f", name, getNumTables(), tips);
+    }
 }

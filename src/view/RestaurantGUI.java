@@ -12,10 +12,9 @@ import java.awt.*;
 public class RestaurantGUI extends JFrame {
 
     /* mvc */
-    private final RestaurantModel  model = new RestaurantModel();
-    private final RestaurantView   view  = new RestaurantView(this);
-    private final RestaurantController controller =
-            new RestaurantController(model, view);
+    private final RestaurantModel  model;
+    private final RestaurantView   view;
+    private final RestaurantController controller;
 
     /* toolbar buttons */
     private final JButton btnTables  = new JButton("Tables");
@@ -37,6 +36,20 @@ public class RestaurantGUI extends JFrame {
         setSize(1000, 700);
         setLocationRelativeTo(null);
 
+        // Initialize model and load persistent state
+        model = new RestaurantModel();
+        model.loadServers();
+        model.loadClosedBills();
+
+        view = new RestaurantView(this);
+        controller = new RestaurantController(model, view);
+
+        // Add shutdown hook to save state on exit
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            model.saveServers();
+            model.saveClosedBills();
+        }));
+        
         /* toolbar */
         JToolBar bar = new JToolBar();
         bar.setFloatable(false);

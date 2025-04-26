@@ -1,10 +1,19 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/* one real-world table */
-public class Table {
+/*
+ * this represents a physical table in the restaurant. tracks the table's ID, capacity, current
+ * occupancy, assigned server, and active orders. Supports seating guests, managing orders, and generating
+ * bills. 
+ * 
+ * author: Michael B, Michael D, Asif R, Mohammed A
+ */
+public class Table implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
 
 	private final int  id;          // number printed on the table
 	private final int  cap;         // max seats
@@ -14,18 +23,24 @@ public class Table {
 	private Server  srv    = null;  // waiter/waitress in charge
 	private final List<Item> items = new ArrayList<>();   // live order
 
-	/* ctor */
+	/*
+	 * constructs a Table with a given ID and seating capacity
+	 */
 	public Table(int id, int cap) {
 		this.id  = id;
 		this.cap = cap;
 	}
 
-	/* seat math:  0 = empty, >0 = seats left, -1 = taken */
+	/*
+	 * determines if the table can seat a new party of the given size
+	 */
 	public int canSeat(int guests) {
 		return occ ? -1 : cap - guests;
 	}
 
-	/* seat a party + hook table into server object */
+	/*
+	 * seats a party at the table and assigns a server
+	 */
 	public void seat(int guests, Server s) {
 		seated = guests;
 		occ    = true;
@@ -33,11 +48,19 @@ public class Table {
 		srv.addTable(this);          // keep server state up-to-date
 	}
 
-	/* order helpers */
+	/*
+	 * adds ordered items to the table's current order
+	 */
 	public void addItems(List<Item> order) { items.addAll(order); }
+	
+	/*
+	 * removes an item from the table's current order
+	 */
 	public boolean removeItem(Item i)      { return items.remove(i); }
 
-	/* clear everything; detach from server */
+	/*
+	 * clears the tables after payment: empties order, unassigns server, resets state
+	 */
 	public void close() {
 		if (srv != null) srv.removeTable(this);
 		items.clear();
@@ -54,7 +77,9 @@ public class Table {
 	public Server     getServer()  { return srv; }
 	public List<Item> getItems()   { return new ArrayList<>(items); }
 
-	/* snapshot of what’s owed right now */
+	/*
+	 * returns a bill representing the current amount owed for the table
+	 */
 	public Bill getBill() {
 		return new Bill(new ArrayList<>(items), seated, srv);
 	}

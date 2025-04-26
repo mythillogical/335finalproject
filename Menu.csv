@@ -1,5 +1,4 @@
 Category,Name,Cost,Mods
-Entrees,Cheeseburger,8.99,No cheese:0.0;Add bacon:1.5;Gluten-free bun:1.0
 Entrees,Caesar Salad,7.49,No croutons:0.0;Extra dressing:0.75
 Entrees,Grilled Chicken Sandwich,9.25,No mayo:0.0;Add avocado:1.25;Whole wheat bun:0.5
 Entrees,Veggie Burger,8.75,Add cheese:0.75;No onions:0.0;Spicy sauce:0.5
@@ -18,3 +17,5 @@ Desserts,Vanilla Ice Cream,3.25,Add sprinkles:0.5;Add hot fudge:0.75
 Desserts,Brownie Sundae,5.75,No nuts:0.0;Extra ice cream:1.25
 Desserts,Tiramisu,5.25,
 Desserts,Cheesecake,5.49,Add strawberries:0.75;Chocolate drizzle:0.5
+Test,Temp,1.00,
+Test,Temp,1.00,

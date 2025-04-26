@@ -5,12 +5,20 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
-/* manages all restaurant tables */
+/*
+ * Manager class for all restaurant tables. Handles table lookup, seating assignments, orders, 
+ * and bill generation. Supports loading tables from a text file at startup.
+ * 
+ * author: Michael B, Michael D, Asif R, Mohammed A
+ */
 public class Tables {
 
     /* full list kept in the order file declared it */
     private final List<Table> tables = new ArrayList<>();
 
+    /*
+     * Constructs the Tables manager and loads table definitions from a text file.
+     */
     public Tables(String filePath) { readFile(filePath); }
 
     /* file loading */
@@ -29,7 +37,9 @@ public class Tables {
         } catch (IOException ex) { ex.printStackTrace(); }
     }
 
-    /* seating helpers */
+    /*
+     * Assigns a table to a server if there is enough seating available.
+     */
     public boolean assignTable(int id, int guests, Server s) {
         Table t = getTable(id);
         if (t == null) return false;
@@ -39,6 +49,7 @@ public class Tables {
         return true;
     }
 
+    
     public void addItemsOrderToTable(int id, List<Item> order) {
         Table t = getTable(id);
         if (t != null && t.isOccupied()) t.addItems(order);
@@ -88,7 +99,6 @@ public class Tables {
         return (t != null) ? t.getBill() : null;
     }
 
-    /* new: read-only access to *all* tables */
     public List<Table> getAllTables() {
         /* unmodifiable so callers can’t mutate internal list */
         return Collections.unmodifiableList(tables);
