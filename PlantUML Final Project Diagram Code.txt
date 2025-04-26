@@ -1,0 +1,239 @@
+@startuml
+!pragma layout smetana
+top to bottom direction
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam classAttributeIconVisibility false
+skinparam ranksep 60
+skinparam nodesep 35
+hide empty fields
+
+title Restaurant Management System – MVC UML Diagram
+
+package "controller" {
+
+    class RestaurantController {
+        +RestaurantController(RestaurantModel, RestaurantView)
+        +handleAddServer(String)
+        +handleRemoveServer(String) : boolean
+        +handleAssignTable(int, int, String) : boolean
+        +handleCloseTable(int, double)
+        +handleAddOrder(int, ArrayList<Item>)
+        +checkActiveServer(String) : boolean
+        +getAvailableTables() : List<Table>
+        +getModel() : RestaurantModel
+    }
+}
+
+package "model" {
+
+    interface "RestaurantModel.ModelListener" as ModelListener {
+        +modelChanged()
+    }
+
+    class RestaurantModel {
+        +RestaurantModel()
+        +addMenuItem(Item)
+        +removeMenuItem(Item)
+        +addServer(String)
+        +removeServer(String) : boolean
+        +assignTableToServer(int, int, String) : boolean
+        +addOrderToTable(int, ArrayList<Item>)
+        +closeTable(int, double)
+        +addListener(ModelListener)
+        +removeListener(ModelListener)
+        +loadServers()
+        +saveServers()
+        +loadClosedBills()
+        +saveClosedBills()
+        +getMenu() : Menu
+        +getTables() : Tables
+        +getServers() : Map<String, Server>
+        +getClosedTables() : List<Bill>
+    }
+
+    class Bill {
+        +Bill(ArrayList<Item>, int, Server)
+        +Bill(ArrayList<Item>, int, Server, double)
+        +getItemsCost() : double
+        +getTotalCost() : double
+        +getCostSplitEvenly() : double
+        +getItems() : List<Item>
+        +getPeople() : int
+        +getServer() : String
+        +getTip() : double
+    }
+
+    class Item {
+        +Item(String, String, double)
+        +Item(Item)
+        +Item(String, String, double, List<Modification>)
+        +addModification(Modification)
+        +getName() : String
+        +getCategory() : String
+        +getCost() : double
+        +getTotalCost() : double
+        +getModifications() : List<Modification>
+        +modsToCsv() : String
+        +withModifications(List<Modification>) : Item
+        +getItemsCost(List<Item>) : double
+    }
+
+    class Menu {
+        +Menu(String)
+        +getAllItems() : List<Item>
+        +addItem(Item)
+        +removeItem(Item)
+    }
+
+    class Modification {
+        +Modification(String, double)
+        +getDescription() : String
+        +getPrice() : double
+    }
+
+    class Server {
+        +Server(String)
+        +addTable(Table)
+        +removeTable(Table)
+        +addTips(double)
+        +getName() : String
+        +getTotalTips() : double
+        +getNumTables() : int
+        +getTables() : Set<Table>
+    }
+
+    class Table {
+        +Table(int, int)
+        +canSeat(int) : int
+        +seat(int, Server)
+        +addItems(List<Item>)
+        +removeItem(Item) : boolean
+        +close()
+        +getTableID() : int
+        +getCapacity() : int
+        +getNumSeated() : int
+        +isOccupied() : boolean
+        +getServer() : Server
+        +getItems() : List<Item>
+        +getBill() : Bill
+    }
+
+    class Tables {
+        +Tables(String)
+        +assignTable(int, int, Server) : boolean
+        +addItemsOrderToTable(int, List<Item>)
+        +removeItemFromTable(int, Item) : boolean
+        +closeTable(int)
+        +getTable(int) : Table
+        +getTablesInfo() : List<TableInfo>
+        +getAvailable(int) : List<TableInfo>
+        +getOccupiedTables() : List<Table>
+        +getBillTable(int) : Bill
+        +getAllTables() : List<Table>
+    }
+
+    class TableInfo <<data>> {
+        +TableInfo(int, int, int)
+        +getId() : int
+        +getCapacity() : int
+        +getSeated() : int
+        +toString() : String
+    }
+
+    RestaurantModel --> Menu              : manages
+    RestaurantModel --> Tables            : manages
+    RestaurantModel --> "1..*" Server     : owns
+    RestaurantModel ..> ModelListener     : notifies
+    Tables           --> Table            : contains
+    Table            --> "0..*" Item      : contains
+    Item             --> Modification     : has
+    Bill             --> Item             : summarises
+    Table            --> "0..1" Server    : served by
+    Server           --> "0..*" Table     : assigned to
+}
+
+package "view" {
+
+    class RestaurantView {
+        +RestaurantView(JFrame)
+        +getRootPanel() : JPanel
+        +displayTables(List<TableInfo>)
+        +displayMenu(List<Item>)
+        +displayBill(int, Bill)
+        +displayError(String)
+    }
+
+    class RestaurantGUI {
+        -swapCenter(JComponent)
+        +RestaurantGUI()
+        +main(String[])
+    }
+
+    class Main {
+        +main(String[])
+    }
+
+    class MenuEditorPanel {
+        +MenuEditorPanel(RestaurantController)
+        +modelChanged()
+    }
+
+    class OrderManagementPanel {
+        +OrderManagementPanel(RestaurantController)
+        +modelChanged()
+        +refresh()
+    }
+
+    class OrderProcessingWindow {
+        +OrderProcessingWindow(RestaurantController, int, OrderManagementPanel)
+        +chooseModsGui(Item, List<Modification>) : Item
+    }
+
+    class PaymentWindow {
+        +PaymentWindow(RestaurantController, Bill, int, OrderManagementPanel)
+    }
+
+    class SalesReportPanel {
+        +SalesReportPanel(RestaurantController)
+        +modelChanged()
+        +refresh()
+        +exportCsv()
+    }
+
+    class ServerManagementPanel {
+        +ServerManagementPanel(RestaurantController)
+        +modelChanged()
+    }
+
+    Main ..> RestaurantGUI                 : launches
+    RestaurantGUI --> controller.RestaurantController : instantiates
+    MenuEditorPanel       ..> controller.RestaurantController : calls
+    OrderManagementPanel  ..> controller.RestaurantController : calls
+    OrderProcessingWindow ..> controller.RestaurantController : calls
+    PaymentWindow         ..> controller.RestaurantController : calls
+    SalesReportPanel      ..> controller.RestaurantController : calls
+    ServerManagementPanel ..> controller.RestaurantController : calls
+    controller.RestaurantController --> RestaurantModel : manipulates
+    controller.RestaurantController --> RestaurantView  : updates
+    RestaurantView  ..> controller.RestaurantController : delegates
+}
+
+package "test" {
+    note as Tests
+    Tests : BillTest
+    Tests : ItemTest
+    Tests : MenuITest
+    Tests : ModificationTest
+    Tests : RestaurantControllerTest
+    Tests : RestaurantModelTest
+    Tests : ServerTest
+    Tests : TableInfoTest
+    Tests : TablesTest
+    Tests : TableTest
+    end note
+}
+
+Tests ..> controller.RestaurantController : tests
+Tests ..> RestaurantModel                : tests
+@enduml
