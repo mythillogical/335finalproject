@@ -12,7 +12,17 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.TreeMap;
 
-/* shows quantities, turnover, tips + csv export */
+/**
+ * GUI panel for viewing sales reports.
+ * 
+ * Displays closed bills, total earnings, and tip summaries.
+ * 
+ * Useful for management and daily reporting.
+ * 
+ * Author: Michael B, Michael D, Asif R, Mohammed A
+ * Course: CSc 335 - Object-Oriented Programming and Design
+ * Semester: Spring 2025
+ */
 public class SalesReportPanel extends JPanel
         implements RestaurantModel.ModelListener {
 
